@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <parent>
+        <groupId>com.fengluan</groupId>
+        <artifactId>goods-store-service</artifactId>
+        <version>1.0.0</version>
+    </parent>
+    <artifactId>goods-store-auth-api</artifactId>
+    <name>goods-store-auth-api</name>
+    <description>goods-store-auth-api</description>
+    <url/>
+    <licenses>
+        <license/>
+    </licenses>
+    <developers>
+        <developer/>
+    </developers>
+    <scm>
+        <connection/>
+        <developerConnection/>
+        <tag/>
+        <url/>
+    </scm>
+    <properties>
+        <java.version>25</java.version>
+    </properties>
+
+    <dependencies>
+        <!-- 公共模块：ApiResult/ErrorCode/BusinessException 等 -->
+        <dependency>
+            <groupId>com.fengluan</groupId>
+            <artifactId>goods-store-common</artifactId>
+            <version>1.0.0</version>
+        </dependency>
+        <!-- auth 纯契约（含 DTO/VO），AuthController implements AuthApi -->
+        <dependency>
+            <groupId>com.fengluan</groupId>
+            <artifactId>goods-store-auth-spi</artifactId>
+            <version>1.0.0</version>
+        </dependency>
+        <!-- Spring Security（仅 auth-api） -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-security</artifactId>
+        </dependency>
+        <!-- Redis：Refresh Token / 黑名单 / 账号锁定 -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-data-redis</artifactId>
+        </dependency>
+        <!-- JWT：jjwt 0.12.6 API + 实现 + Jackson 序列化 -->
+        <dependency>
+            <groupId>io.jsonwebtoken</groupId>
+            <artifactId>jjwt-api</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>io.jsonwebtoken</groupId>
+            <artifactId>jjwt-impl</artifactId>
+            <scope>runtime</scope>
+        </dependency>
+        <dependency>
+            <groupId>io.jsonwebtoken</groupId>
+            <artifactId>jjwt-jackson</artifactId>
+            <scope>runtime</scope>
+        </dependency>
+        <!-- 参数校验 -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-validation</artifactId>
+        </dependency>
+    </dependencies>
+</project>

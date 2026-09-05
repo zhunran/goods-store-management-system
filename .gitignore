@@ -1,0 +1,50 @@
+HELP.md
+target/
+.mvn/wrapper/maven-wrapper.jar
+!**/src/main/**/target/
+!**/src/test/**/target/
+
+### STS ###
+.apt_generated
+.classpath
+.factorypath
+.project
+.settings
+.springBeans
+.sts4-cache
+
+### IntelliJ IDEA ###
+.idea
+*.iws
+*.iml
+*.ipr
+
+### NetBeans ###
+/nbproject/private/
+/nbbuild/
+/dist/
+/nbdist/
+/.nb-gradle/
+build/
+!**/src/main/**/build/
+!**/src/test/**/build/
+
+### VS Code ###
+.vscode/
+
+### 运行日志与本地产物 ###
+logs/
+*.log
+log.md.bak
+
+### 第三方中间件二进制（体积大，不入库，自行下载部署） ###
+sentinel/
+skywalking/
+
+### 前端构建与依赖 ###
+node_modules/
+**/dist/
+*.tsbuildinfo
+vite.config.js
+vite.config.d.ts
+tsconfig.node.tsbuildinfo

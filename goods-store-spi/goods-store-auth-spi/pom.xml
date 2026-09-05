@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <parent>
+        <groupId>com.fengluan</groupId>
+        <artifactId>goods-store-spi</artifactId>
+        <version>1.0.0</version>
+    </parent>
+    <artifactId>goods-store-auth-spi</artifactId>
+    <name>goods-store-auth-spi</name>
+    <description>认证服务纯 HTTP 契约：AuthApi、DTO、VO（禁 FeignClient）</description>
+    <packaging>jar</packaging>
+
+    <dependencies>
+        <!-- 契约接口需 @GetMapping/@PostMapping/@RequestHeader 等 -->
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-web</artifactId>
+        </dependency>
+        <!-- @NotBlank/@Email/@Size/@Pattern 等校验注解 -->
+        <dependency>
+            <groupId>jakarta.validation</groupId>
+            <artifactId>jakarta.validation-api</artifactId>
+        </dependency>
+    </dependencies>
+</project>

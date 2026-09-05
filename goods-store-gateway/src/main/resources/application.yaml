@@ -1,0 +1,79 @@
+server:
+  port: 8888
+
+# JWT 签名密钥：必须与 auth-api（JwtUtil.SECRET）保持一致
+jwt:
+  secret: change-me-this-is-a-very-long-32byte-secret-key!!
+
+spring:
+  application:
+    name: goods-store-gateway
+  cloud:
+    nacos:
+      discovery:
+        server-addr: localhost:8848
+        username: nacos
+        password: nacos
+        group: DEFAULT_GROUP
+        locator:
+          enabled: true
+      config:
+        server-addr: localhost:8848
+        username: nacos
+        password: nacos
+        group: DEFAULT_GROUP
+        file-extension: yaml
+        namespace: public
+    sentinel:
+      # 连本机 Dashboard（控制台）做规则管理与可视化
+      transport:
+        dashboard: localhost:8080
+        # 客户端与控制台通信的接收端口（默认 8719，冲突时自动 +1 累加）
+        port: 8719
+      # 应用启动即向控制台注册（而非等首次调用才注册）
+      eager: true
+
+    gateway:
+      # 注意：Gateway 5.x（Spring Cloud 2025.1）路由属性已迁移到 server.webflux 下，
+      # 旧位置 spring.cloud.gateway.routes 已失效，不要再写
+      server:
+        webflux:
+          routes:
+            # 前端唯一入口：/app/api/** → web（BFF 聚合层），置于最前更清晰
+            - id: web-frontend
+              uri: lb://goods-store-web
+              predicates:
+                - Path=/app/api/**
+            - id: auth-api
+              uri: lb://goods-store-auth-api
+              predicates:
+                - Path=/auth/api/**
+            - id: brand-api
+              uri: lb://goods-store-brand-api
+              predicates:
+                - Path=/brand/api/**
+            # 静态资源：本地上传的图片由 brand-api 托管（/static/upload/**）
+            - id: static-upload
+              uri: lb://goods-store-brand-api
+              predicates:
+                - Path=/static/upload/**
+            # 商品服务控制器实际前缀是 /good/api（GoodController），与计划书中的 /product/api 不一致
+            - id: product-api
+              uri: lb://goods-store-product-api
+              predicates:
+                - Path=/good/api/**
+            - id: member-api
+              uri: lb://goods-store-member-api
+              predicates:
+                - Path=/member/api/**
+            - id: trade-api
+              uri: lb://goods-store-trade-api
+              predicates:
+                - Path=/trade/api/**
+            - id: seckill-api
+              uri: lb://goods-store-seckill-api
+              predicates:
+                - Path=/seckill/api/**
+  config:
+    import:
+      - optional:nacos:goods-store-common.yaml

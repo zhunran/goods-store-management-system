@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <parent>
+        <groupId>com.fengluan</groupId>
+        <artifactId>goods-store-spi</artifactId>
+        <version>1.0.0</version>
+    </parent>
+
+    <artifactId>goods-store-trade-spi</artifactId>
+    <name>goods-store-trade-spi</name>
+    <description>交易服务契约：Feign接口、DTO、VO</description>
+    <packaging>jar</packaging>
+
+    <dependencies>
+        <!-- 契约接口需 @GetMapping/@RequestBody 等，纯 HTTP 契约层不依赖 openfeign -->
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-web</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>jakarta.validation</groupId>
+            <artifactId>jakarta.validation-api</artifactId>
+        </dependency>
+    </dependencies>
+
+</project>

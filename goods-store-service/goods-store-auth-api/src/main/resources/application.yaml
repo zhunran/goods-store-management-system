@@ -1,0 +1,32 @@
+server:
+  port: 8083
+
+# JWT 签名密钥：必须与网关（jwt.secret）保持一致
+jwt:
+  secret: change-me-this-is-a-very-long-32byte-secret-key!!
+
+spring:
+  application:
+    name: goods-store-auth-api
+  cloud:
+    nacos:
+      discovery:
+        server-addr: localhost:8848
+        username: nacos
+        password: nacos
+        group: DEFAULT_GROUP
+      config:
+        server-addr: localhost:8848
+        username: nacos
+        password: nacos
+        group: DEFAULT_GROUP
+        file-extension: yaml
+        namespace: public
+  config:
+    import:
+      - optional:nacos:goods-store-common.yaml
+      - optional:nacos:goods-store-shared-service-config.yaml
+
+snowflake:
+  worker-id: 1
+  datacenter-id: 1

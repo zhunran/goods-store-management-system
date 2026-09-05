@@ -1,0 +1,28 @@
+server:
+  port: 8087
+
+spring:
+  application:
+    name: goods-store-seckill-api
+  cloud:
+    nacos:
+      discovery:
+        server-addr: localhost:8848
+        username: nacos
+        password: nacos
+        group: DEFAULT_GROUP
+      config:
+        server-addr: localhost:8848
+        username: nacos
+        password: nacos
+        group: DEFAULT_GROUP
+        file-extension: yaml
+        namespace: public
+  config:
+    import:
+      - optional:nacos:goods-store-common.yaml
+      - optional:nacos:goods-store-shared-service-config.yaml
+
+snowflake:
+  worker-id: 6
+  datacenter-id: 1

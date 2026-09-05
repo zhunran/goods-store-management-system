@@ -1,0 +1,160 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <parent>
+        <groupId>com.fengluan</groupId>
+        <artifactId>goods-store-management-system-parent</artifactId>
+        <version>1.0.0</version>
+    </parent>
+    <artifactId>goods-store-web</artifactId>
+    <name>goods-store-web</name>
+    <description>goods-store-web</description>
+    <url/>
+    <licenses>
+        <license/>
+    </licenses>
+    <developers>
+        <developer/>
+    </developers>
+    <scm>
+        <connection/>
+        <developerConnection/>
+        <tag/>
+        <url/>
+    </scm>
+    <properties>
+        <java.version>25</java.version>
+    </properties>
+    <dependencies>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-webmvc</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>org.springframework.cloud</groupId>
+            <artifactId>spring-cloud-starter-loadbalancer</artifactId>
+        </dependency>
+
+        <!-- Feign 客户端（web 作为 BFF 聚合层调用各 spi 契约） -->
+        <dependency>
+            <groupId>org.springframework.cloud</groupId>
+            <artifactId>spring-cloud-starter-openfeign</artifactId>
+        </dependency>
+        <!-- 公共模块：ApiResult/ErrorCode 等 -->
+        <dependency>
+            <groupId>com.fengluan</groupId>
+            <artifactId>goods-store-common</artifactId>
+            <version>1.0.0</version>
+        </dependency>
+        <!-- auth 纯契约（AuthApi + DTO/VO），AuthFeignClient extends 复用 -->
+        <dependency>
+            <groupId>com.fengluan</groupId>
+            <artifactId>goods-store-auth-spi</artifactId>
+            <version>1.0.0</version>
+        </dependency>
+        <!-- brand 纯契约（BrandApi + DTO/VO），BrandFeignClient extends 复用 -->
+        <dependency>
+            <groupId>com.fengluan</groupId>
+            <artifactId>goods-store-brand-spi</artifactId>
+            <version>1.0.0</version>
+        </dependency>
+        <!-- product 纯契约（ProductApi + DTO/VO），ProductFeignClient extends 复用 -->
+        <dependency>
+            <groupId>com.fengluan</groupId>
+            <artifactId>goods-store-product-spi</artifactId>
+            <version>1.0.0</version>
+        </dependency>
+        <!-- member 纯契约（MemberApi + DTO/VO），MemberFeignClient extends 复用 -->
+        <dependency>
+            <groupId>com.fengluan</groupId>
+            <artifactId>goods-store-member-spi</artifactId>
+            <version>1.0.0</version>
+        </dependency>
+        <!-- trade 纯契约（CartApi/OrderApi + DTO/VO），TradeCartFeignClient extends 复用 -->
+        <dependency>
+            <groupId>com.fengluan</groupId>
+            <artifactId>goods-store-trade-spi</artifactId>
+            <version>1.0.0</version>
+        </dependency>
+        <!-- seckill 纯契约（SeckillActivityApi/SeckillGoodApi + DTO/VO），SeckillFeignClient extends 复用 -->
+        <dependency>
+            <groupId>com.fengluan</groupId>
+            <artifactId>goods-store-seckill-spi</artifactId>
+            <version>1.0.0</version>
+        </dependency>
+
+        <dependency>
+            <groupId>com.alibaba.cloud</groupId>
+            <artifactId>spring-cloud-starter-alibaba-nacos-discovery</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.alibaba.cloud</groupId>
+            <artifactId>spring-cloud-starter-alibaba-nacos-config</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-devtools</artifactId>
+            <scope>runtime</scope>
+            <optional>true</optional>
+        </dependency>
+        <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+            <optional>true</optional>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-webmvc-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-maven-plugin</artifactId>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>default-compile</id>
+                        <phase>compile</phase>
+                        <goals>
+                            <goal>compile</goal>
+                        </goals>
+                        <configuration>
+                            <annotationProcessorPaths>
+                                <path>
+                                    <groupId>org.projectlombok</groupId>
+                                    <artifactId>lombok</artifactId>
+                                </path>
+                            </annotationProcessorPaths>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>default-testCompile</id>
+                        <phase>test-compile</phase>
+                        <goals>
+                            <goal>testCompile</goal>
+                        </goals>
+                        <configuration>
+                            <annotationProcessorPaths>
+                                <path>
+                                    <groupId>org.projectlombok</groupId>
+                                    <artifactId>lombok</artifactId>
+                                </path>
+                            </annotationProcessorPaths>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
+
+</project>

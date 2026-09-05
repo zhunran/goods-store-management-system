@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <parent>
+        <groupId>com.fengluan</groupId>
+        <artifactId>goods-store-service</artifactId>
+        <version>1.0.0</version>
+    </parent>
+
+    <artifactId>goods-store-trade-api</artifactId>
+    <name>goods-store-trade-api</name>
+    <description>交易管理</description>
+
+    <properties>
+        <java.version>25</java.version>
+    </properties>
+
+    <dependencies>
+        <dependency>
+            <groupId>com.fengluan</groupId>
+            <artifactId>goods-store-common</artifactId>
+            <version>1.0.0</version>
+        </dependency>
+        <!-- spi 契约 -->
+        <dependency>
+            <groupId>com.fengluan</groupId>
+            <artifactId>goods-store-trade-spi</artifactId>
+            <version>1.0.0</version>
+        </dependency>
+        <dependency>
+            <groupId>com.fengluan</groupId>
+            <artifactId>goods-store-product-spi</artifactId>
+            <version>1.0.0</version>
+        </dependency>
+        <dependency>
+            <groupId>com.fengluan</groupId>
+            <artifactId>goods-store-member-spi</artifactId>
+            <version>1.0.0</version>
+        </dependency>
+        <!-- Feign 消费 -->
+        <dependency>
+            <groupId>org.springframework.cloud</groupId>
+            <artifactId>spring-cloud-starter-openfeign</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.cloud</groupId>
+            <artifactId>spring-cloud-starter-loadbalancer</artifactId>
+        </dependency>
+        <!-- RabbitMQ / Redis / Redisson -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-amqp</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-data-redis</artifactId>
+        </dependency>
+        <!-- Lettuce 连接池（spring.data.redis.lettuce.pool.* 需要） -->
+        <dependency>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-pool2</artifactId>
+        </dependency>
+        <!-- Redisson 分布式锁：用核心包 + 手写 RedissonConfig，
+             redisson-spring-boot-starter 的自动装配引用 Boot 4.1 已删除的 RedisProperties，不兼容 -->
+        <dependency>
+            <groupId>org.redisson</groupId>
+            <artifactId>redisson</artifactId>
+            <version>${redisson.version}</version>
+        </dependency>
+        <!-- MyBatis-Plus IService/ServiceImpl（3.5.9+ 自 extension 拆至 spring 模块；starter 由父 POM 提供） -->
+        <dependency>
+            <groupId>com.baomidou</groupId>
+            <artifactId>mybatis-plus-spring</artifactId>
+            <version>${mybatis-plus.version}</version>
+        </dependency>
+    </dependencies>
+
+</project>

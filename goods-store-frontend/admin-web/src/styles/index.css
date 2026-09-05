@@ -1,0 +1,61 @@
+:root {
+  --brand-color: #2563eb;
+  --brand-color-hover: #3b82f6;
+  --sidebar-bg: #1f2937;
+  --sidebar-text: #cbd5e1;
+  --sidebar-active: #2563eb;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html,
+body,
+#app {
+  height: 100%;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial,
+    'PingFang SC', 'Microsoft YaHei', sans-serif;
+  background: #f5f6fa;
+  color: #303133;
+}
+
+.page-container {
+  padding: 16px;
+}
+
+.filter-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.pagination-wrap {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 16px;
+}
+
+/* 图片加载失败兜底（如历史数据指向已下线的图片服务） */
+.img-fallback {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  background: #f0f2f5;
+  color: #909399;
+  font-size: 12px;
+  border-radius: 4px;
+}

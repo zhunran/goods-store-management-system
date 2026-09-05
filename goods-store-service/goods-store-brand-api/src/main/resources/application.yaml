@@ -1,0 +1,30 @@
+server:
+  port: 8081
+
+spring:
+  application:
+    name: goods-store-brand-api
+  cloud:
+    nacos:
+      discovery:
+        server-addr: localhost:8848
+        username: nacos
+        password: nacos
+        ip: 192.168.110.98
+        group: DEFAULT_GROUP
+      config:
+        server-addr: localhost:8848
+        username: nacos
+        password: nacos
+        group: DEFAULT_GROUP
+        file-extension: yaml
+        namespace: public
+  config:
+    import:
+      - optional:nacos:goods-store-common.yaml
+      - optional:nacos:goods-store-brand-api.yaml
+      - optional:nacos:goods-store-shared-service-config.yaml
+
+snowflake:
+  worker-id: 2
+  datacenter-id: 1

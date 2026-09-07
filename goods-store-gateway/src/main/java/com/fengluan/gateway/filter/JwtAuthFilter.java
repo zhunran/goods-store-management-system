@@ -12,11 +12,13 @@ import org.springframework.cloud.gateway.filter.GlobalFilter;
 import org.springframework.data.redis.core.ReactiveStringRedisTemplate;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
 import org.springframework.core.Ordered;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 
 @Component
@@ -29,8 +31,8 @@ public class JwtAuthFilter implements GlobalFilter,Ordered {
     @Override
     public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
         String path=exchange.getRequest().getURI().getPath();
-        //白名单放行
-        if (whiteListConfig.isWhiteListed(path))
+        //白名单放行（按 HTTP 方法区分只读与写接口）
+        if (whiteListConfig.isWhiteListed(path, exchange.getRequest().getMethod()))
         {
             return chain.filter(exchange);
         }
@@ -69,10 +71,13 @@ public class JwtAuthFilter implements GlobalFilter,Ordered {
                         return unauthorized(exchange,"Token已注销");
                     }
                     //透传用户信息给下游
+                    List<?> permissions = claims.get("permissions", List.class);
+                    List<?> roles = claims.get("roles", List.class);
                     ServerWebExchange mutated=exchange.mutate().request(
                             exchange.getRequest().mutate()
                                     .header("X-User-Id",userId)
-                                    .header("X-User-Roles",String.join(",",claims.get("roles", List.class)))
+                                    .header("X-User-Roles", roles == null ? "" : String.join(",", roles.stream().map(String::valueOf).toList()))
+                                    .header("X-User-Permissions", permissions == null ? "" : String.join(",", permissions.stream().map(String::valueOf).toList()))
                                     .build()).build();
                     return chain.filter(mutated);
                 });
@@ -81,9 +86,11 @@ public class JwtAuthFilter implements GlobalFilter,Ordered {
     private Mono<Void> unauthorized(ServerWebExchange exchange, String message) {
         log.warn("[gateway] 拒绝访问, path={}, reason={}", exchange.getRequest().getURI().getPath(), message);
         exchange.getResponse().setStatusCode(HttpStatus.UNAUTHORIZED);
+        exchange.getResponse().getHeaders().setContentType(MediaType.APPLICATION_JSON);
+        String body = "{\"code\":401,\"message\":\"" + message.replace("\"", "\\\"") + "\"}";
         return exchange.getResponse().writeWith(
                 Mono.just(exchange.getResponse().bufferFactory()
-                        .wrap(("{\"code\":401,\"message\":\"" + message + "\"}").getBytes())));
+                        .wrap(body.getBytes(StandardCharsets.UTF_8))));
     }
 
     @Override

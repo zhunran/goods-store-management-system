@@ -1,5 +1,10 @@
-import { post, put } from '@/utils/request'
-import type { LoginRequest, LoginResponse, RegisterRequest } from './types'
+import { get, post, put } from '@/utils/request'
+import type { CaptchaVO, LoginRequest, LoginResponse, RegisterRequest } from './types'
+
+/** 获取登录图形验证码（返回 base64 图片 + 会话 ID） */
+export function getCaptcha() {
+  return get<CaptchaVO>('/auth/captcha')
+}
 
 /** C 端会员登录（loginType 固定为 member） */
 export function login(data: LoginRequest) {

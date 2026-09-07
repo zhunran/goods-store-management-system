@@ -20,15 +20,15 @@
 import { computed, onBeforeUnmount, onMounted, ref } from "vue";
 
 const props = defineProps<{
-  /** 倒计时总秒数 */
-  seconds: number;
+  /** 倒计时总秒数（后端 Long 全局序列化为字符串，故兼容 string | number） */
+  seconds: number | string;
   /** 紧凑尺寸（卡片内使用） */
   small?: boolean;
 }>();
 
 const emit = defineEmits<{ finish: [] }>();
 
-const remain = ref(Math.max(0, props.seconds));
+const remain = ref(Math.max(0, Number(props.seconds) || 0));
 const anim = ref(false);
 let timer: ReturnType<typeof setInterval> | null = null;
 
@@ -86,7 +86,7 @@ function pad(n: number) {
   min-width: 26px;
   padding: 1px 4px;
   border-radius: 6px;
-  background: rgba(61, 58, 56, 0.08);
+  background: rgba(15, 23, 42, 0.08);
   text-align: center;
 }
 

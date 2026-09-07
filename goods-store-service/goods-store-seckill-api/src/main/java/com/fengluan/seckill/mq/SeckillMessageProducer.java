@@ -17,4 +17,10 @@ public class SeckillMessageProducer {
         rabbitTemplate.convertAndSend(SeckillMqConfig.ORDER_EXCHANGE,
                 SeckillMqConfig.SECKILL_ORDER_KEY, message);
     }
+
+    /** 秒杀订单超时延迟消息（30 分钟未支付自动取消） */
+    public void sendSeckillOrderTimeout(SeckillOrderMessage message) {
+        rabbitTemplate.convertAndSend(SeckillMqConfig.ORDER_EXCHANGE,
+                SeckillMqConfig.SECKILL_ORDER_TIMEOUT_KEY, message);
+    }
 }

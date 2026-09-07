@@ -15,7 +15,7 @@ public class ApiResult<T> {
 
     // 1. 最常用：无参，快速返回成功
     public static <T> ApiResult<T> success() {
-        return new ApiResult<>();
+        return new ApiResult<>(200, true, null, null);
     }
 
     // 2. 常用：只返回数据（message 为 null）

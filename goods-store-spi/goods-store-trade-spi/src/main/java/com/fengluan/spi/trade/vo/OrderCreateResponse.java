@@ -9,6 +9,8 @@ import java.math.BigDecimal;
  */
 @Data
 public class OrderCreateResponse {
+    /** 订单ID（收银台按 id 进入） */
+    private Long id;
     /** 订单号（雪花算法） */
     private String orderNo;
     /** 订单总价 */

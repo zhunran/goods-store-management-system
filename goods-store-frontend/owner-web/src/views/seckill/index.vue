@@ -21,7 +21,7 @@
           <div v-for="i in 4" :key="i" class="skeleton-card card">
             <div
               class="skeleton-line"
-              style="aspect-ratio: 1; border-radius: 10px"
+              style="aspect-ratio: 1; border-radius: 6px"
             ></div>
             <div class="skeleton-line" style="margin-top: 12px"></div>
             <div
@@ -34,7 +34,7 @@
                 width: 70%;
                 height: 34px;
                 margin-top: 14px;
-                border-radius: 999px;
+                border-radius: 4px;
               "
             ></div>
           </div>
@@ -228,7 +228,6 @@
           <el-button
             type="primary"
             class="btn-primary"
-            round
             @click="resultVisible = false"
           >
             开心收下
@@ -240,7 +239,7 @@
           </div>
           <h3>排队的人有点多</h3>
           <p>抢购资格已保留，请稍后刷新本页查看最终结果</p>
-          <el-button round @click="resultVisible = false">知道了</el-button>
+          <el-button @click="resultVisible = false">知道了</el-button>
         </template>
       </div>
     </el-dialog>
@@ -252,6 +251,7 @@ import { computed, onBeforeUnmount, onMounted, ref } from "vue";
 import { useRouter } from "vue-router";
 import { seckillList, seckillOrder, seckillResult } from "@/api/seckill";
 import type { SeckillGoodVO } from "@/api/types";
+import CountDown from "@/components/CountDown.vue";
 
 const router = useRouter();
 
@@ -349,7 +349,7 @@ onMounted(loadList);
 <style scoped>
 /* ---------- 头图 ---------- */
 .seckill-hero {
-  background: linear-gradient(140deg, #0f766e 0%, #10b981 55%, #34d399 100%);
+  background: linear-gradient(140deg, #991b1b 0%, #ef4444 55%, #fb923c 100%);
   color: #fff;
 }
 
@@ -426,21 +426,21 @@ onMounted(loadList);
   left: 0;
   top: 50%;
   transform: translateY(-50%);
-  width: 5px;
+  width: 4px;
   height: 16px;
-  border-radius: 3px;
+  border-radius: 0;
 }
 
 .group-title.green::before {
-  background: linear-gradient(135deg, #34d399, #10b981);
+  background: var(--accent-hot-gradient);
 }
 
 .group-title.amber::before {
-  background: linear-gradient(135deg, #fbbf24, #f59e0b);
+  background: linear-gradient(135deg, #60a5fa, #2563eb);
 }
 
 .group-title.gray::before {
-  background: #cfc9c2;
+  background: #cbd5e1;
 }
 
 .group-sub {
@@ -462,16 +462,16 @@ onMounted(loadList);
 .pic-wrap {
   position: relative;
   aspect-ratio: 1;
-  border-radius: 10px;
+  border-radius: var(--radius);
   overflow: hidden;
-  background: #f5f2ee;
+  background: #eef2f7;
   cursor: pointer;
 }
 
 .pic {
   width: 100%;
   height: 100%;
-  transition: transform 0.4s ease;
+  transition: transform 0.4s var(--ease);
 }
 
 .seckill-card:hover .pic {
@@ -488,10 +488,11 @@ onMounted(loadList);
   align-items: center;
   gap: 5px;
   padding: 2px 10px;
-  border-radius: 999px;
+  border-radius: 2px;
   font-size: 12px;
   font-weight: 600;
   color: #fff;
+  letter-spacing: 1px;
 }
 
 .live-tag {
@@ -518,11 +519,11 @@ onMounted(loadList);
 }
 
 .upcoming-tag {
-  background: linear-gradient(135deg, #fbbf24, #f59e0b);
+  background: linear-gradient(135deg, #60a5fa, #2563eb);
 }
 
 .ended-tag {
-  background: #b8b2ac;
+  background: #94a3b8;
 }
 
 .info {
@@ -560,21 +561,21 @@ onMounted(loadList);
 .btn-seckill {
   margin-top: 10px;
   width: 100%;
-  border-radius: 999px;
+  border-radius: var(--radius-sm);
   border: none;
-  background: linear-gradient(135deg, #34d399 0%, #10b981 100%);
+  background: var(--accent-hot-gradient);
   font-weight: 600;
   letter-spacing: 1px;
 }
 
 .btn-seckill:hover:not(.is-disabled) {
-  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
 }
 
 .btn-wait {
   margin-top: 10px;
   width: 100%;
-  border-radius: 999px;
+  border-radius: var(--radius-sm);
 }
 
 .seckill-grid.ended .pic {
@@ -622,8 +623,8 @@ onMounted(loadList);
 }
 
 .result-icon.spinning {
-  color: var(--accent-green);
-  background: var(--accent-green-light);
+  color: var(--primary);
+  background: var(--primary-light);
 }
 
 .result-icon.spinning .el-icon {
@@ -638,7 +639,7 @@ onMounted(loadList);
 
 .result-icon.success {
   color: #10b981;
-  background: var(--accent-green-light);
+  background: #ecfdf5;
 }
 
 .result-icon.warn {
@@ -660,7 +661,7 @@ onMounted(loadList);
   width: 8px;
   height: 8px;
   border-radius: 50%;
-  background: #34d399;
+  background: #60a5fa;
   animation: dot-jump 1.2s ease infinite;
 }
 

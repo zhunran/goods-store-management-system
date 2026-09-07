@@ -1,5 +1,6 @@
 package com.fengluan.web.trade;
 
+import com.fengluan.spi.trade.dto.OrderPayRequest;
 import com.fengluan.spi.trade.dto.OrderQueryRequest;
 import com.fengluan.spi.trade.dto.PageVO;
 import com.fengluan.spi.trade.vo.OrderDetailVO;
@@ -32,6 +33,14 @@ public class WebOrderMgrService {
         tradeOrderFeignClient.confirm(id);
     }
 
+    public void pay(Long memberId, Long id, OrderPayRequest request) {
+        tradeOrderFeignClient.pay(id, request);
+    }
+
+    public void refund(Long memberId, Long id) {
+        tradeOrderFeignClient.refund(id);
+    }
+
     // —— 管理端 ——
     public PageVO<OrderVO> adminPage(OrderQueryRequest query) {
         return tradeOrderFeignClient.adminPage(query);
@@ -43,5 +52,9 @@ public class WebOrderMgrService {
 
     public void ship(Long id) {
         tradeOrderFeignClient.ship(id);
+    }
+
+    public void adminRefund(Long id) {
+        tradeOrderFeignClient.adminRefund(id);
     }
 }

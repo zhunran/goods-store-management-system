@@ -38,38 +38,54 @@ public class AdminDataInitializer implements CommandLineRunner {
     @Override
     public void run(String... args) {
         RoleEntity adminRole = ensureRole("ROLE_ADMIN", "超级管理员");
+        RoleEntity operatorRole = ensureRole("ROLE_OPERATOR", "运营");
 
-        // 权限编码与前端按钮级权限一一对应
-        List<String> permissionCodes = List.of(
+        // ADMIN：全量权限（含角色管理）；OPERATOR：无秒杀/会员/角色管理
+        bindCodes(adminRole, List.of(
                 "dashboard:view",
                 "good:list", "good:create", "good:update", "good:delete",
                 "brand:list", "brand:create", "brand:update", "brand:delete",
                 "seckill:list", "seckill:create", "seckill:update", "seckill:delete",
-                "order:list", "order:ship",
-                "member:list"
-        );
+                "order:list", "order:ship", "order:refund",
+                "member:list",
+                "role:manage"
+        ));
+        bindCodes(operatorRole, List.of(
+                "dashboard:view",
+                "good:list", "good:create", "good:update", "good:delete",
+                "brand:list", "brand:create", "brand:update", "brand:delete",
+                "order:list", "order:ship", "order:refund"
+        ));
+
+        createAdminUser("admin", adminRole);
+        createAdminUser("operator", operatorRole);
+    }
+
+    private void bindCodes(RoleEntity role, List<String> permissionCodes) {
         for (String code : permissionCodes) {
             PermissionEntity perm = ensurePermission(code, code);
-            bindRolePermission(adminRole.getId(), perm.getId());
+            bindRolePermission(role.getId(), perm.getId());
         }
+    }
 
-        AdminUserEntity admin = adminUserMapper.selectOne(new LambdaQueryWrapper<AdminUserEntity>()
-                .eq(AdminUserEntity::getUsername, "admin"));
-        if (admin == null) {
-            admin = new AdminUserEntity();
-            admin.setUsername("admin");
-            admin.setPassword(passwordEncoder.encode("123456"));
-            admin.setStatus(1);
-            adminUserMapper.insert(admin);
-            log.info("[init] 已创建管理员 admin / 123456");
+    private void createAdminUser(String username, RoleEntity role) {
+        AdminUserEntity user = adminUserMapper.selectOne(new LambdaQueryWrapper<AdminUserEntity>()
+                .eq(AdminUserEntity::getUsername, username));
+        if (user == null) {
+            user = new AdminUserEntity();
+            user.setUsername(username);
+            user.setPassword(passwordEncoder.encode("123456"));
+            user.setStatus(1);
+            adminUserMapper.insert(user);
+            log.info("[init] 已创建管理员 {} / 123456", username);
         }
         Long count = adminUserRoleMapper.selectCount(new LambdaQueryWrapper<AdminUserRoleEntity>()
-                .eq(AdminUserRoleEntity::getAdminUserId, admin.getId())
-                .eq(AdminUserRoleEntity::getRoleId, adminRole.getId()));
+                .eq(AdminUserRoleEntity::getAdminUserId, user.getId())
+                .eq(AdminUserRoleEntity::getRoleId, role.getId()));
         if (count == null || count == 0) {
             AdminUserRoleEntity rel = new AdminUserRoleEntity();
-            rel.setAdminUserId(admin.getId());
-            rel.setRoleId(adminRole.getId());
+            rel.setAdminUserId(user.getId());
+            rel.setRoleId(role.getId());
             adminUserRoleMapper.insert(rel);
         }
     }

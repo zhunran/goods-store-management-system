@@ -5,6 +5,7 @@ export interface MemberVO {
   pinyin: string
   sex: string
   birthday: string
+  enabled: boolean
   phone: string
   maskedCardId: string
   email: string

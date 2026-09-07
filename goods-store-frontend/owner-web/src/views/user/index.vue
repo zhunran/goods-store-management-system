@@ -6,12 +6,16 @@
         <el-avatar :size="72" class="avatar">
           {{ avatarText }}
         </el-avatar>
-        <h3 class="profile-name">{{ profile?.name || '亲爱的会员' }}</h3>
+        <h3 class="profile-name">{{ profile?.name || "亲爱的会员" }}</h3>
         <p class="profile-account">{{ profile?.account }}</p>
         <p v-if="profile?.createdTime" class="profile-join">
           {{ profile.createdTime.slice(0, 10) }} 加入丰峦优选
         </p>
-        <el-menu :default-active="activePanel" class="user-menu" @select="onSelect">
+        <el-menu
+          :default-active="activePanel"
+          class="user-menu"
+          @select="onSelect"
+        >
           <el-menu-item index="profile">
             <el-icon><User /></el-icon>我的资料
           </el-menu-item>
@@ -36,7 +40,11 @@
             class="profile-form"
           >
             <el-form-item label="昵称">
-              <el-input v-model="profileForm.name" placeholder="给自己起个昵称" maxlength="20" />
+              <el-input
+                v-model="profileForm.name"
+                placeholder="给自己起个昵称"
+                maxlength="20"
+              />
             </el-form-item>
             <el-form-item label="性别">
               <el-radio-group v-model="profileForm.sex">
@@ -55,10 +63,17 @@
               />
             </el-form-item>
             <el-form-item label="手机号">
-              <el-input v-model="profileForm.phone" placeholder="11 位手机号" maxlength="11" />
+              <el-input
+                v-model="profileForm.phone"
+                placeholder="11 位手机号"
+                maxlength="11"
+              />
             </el-form-item>
             <el-form-item label="邮箱">
-              <el-input v-model="profileForm.email" placeholder="example@mail.com" />
+              <el-input
+                v-model="profileForm.email"
+                placeholder="example@mail.com"
+              />
             </el-form-item>
             <el-form-item>
               <el-button
@@ -77,7 +92,11 @@
         <div v-else-if="activePanel === 'address'" class="panel card">
           <div class="panel-head">
             <h2 class="panel-title">收货地址</h2>
-            <el-button type="primary" class="btn-primary" round @click="openAddrDialog()">
+            <el-button
+              type="primary"
+              class="btn-primary"
+              @click="openAddrDialog()"
+            >
               <el-icon><Plus /></el-icon>&nbsp;新增地址
             </el-button>
           </div>
@@ -88,18 +107,25 @@
                 <div class="addr-top">
                   <span class="addr-name">{{ a.receiver }}</span>
                   <span class="addr-phone">{{ a.phone }}</span>
-                  <el-tag v-if="a.isDefault" size="small" class="default-tag" round>
+                  <el-tag v-if="a.isDefault" size="small" class="default-tag">
                     默认地址
                   </el-tag>
                 </div>
                 <p class="addr-detail">{{ a.addrDetail }}</p>
               </div>
               <div class="addr-ops">
-                <el-button v-if="!a.isDefault" link type="primary" @click="onSetDefault(a)">
+                <el-button
+                  v-if="!a.isDefault"
+                  link
+                  type="primary"
+                  @click="onSetDefault(a)"
+                >
                   设为默认
                 </el-button>
                 <el-button link @click="openAddrDialog(a)">编辑</el-button>
-                <el-button link type="danger" @click="onDeleteAddr(a)">删除</el-button>
+                <el-button link type="danger" @click="onDeleteAddr(a)"
+                  >删除</el-button
+                >
               </div>
             </div>
           </div>
@@ -163,19 +189,39 @@
       width="460px"
       align-center
     >
-      <el-form ref="addrFormRef" :model="addrForm" :rules="addrRules" label-width="80px">
+      <el-form
+        ref="addrFormRef"
+        :model="addrForm"
+        :rules="addrRules"
+        label-width="80px"
+      >
         <el-form-item label="收货人" prop="receiver">
-          <el-input v-model="addrForm.receiver" placeholder="收货人姓名" maxlength="20" />
+          <el-input
+            v-model="addrForm.receiver"
+            placeholder="收货人姓名"
+            maxlength="20"
+          />
         </el-form-item>
         <el-form-item label="手机号" prop="phone">
-          <el-input v-model="addrForm.phone" placeholder="11 位手机号" maxlength="11" />
-        </el-form-item>
-        <el-form-item label="详细地址" prop="addrDetail">
           <el-input
-            v-model="addrForm.addrDetail"
+            v-model="addrForm.phone"
+            placeholder="11 位手机号"
+            maxlength="11"
+          />
+        </el-form-item>
+        <el-form-item label="所在地区" prop="region">
+          <RegionCascade
+            :key="addrCascadeKey"
+            v-model="addrForm.region"
+            :initial-full="editingInitialFull"
+          />
+        </el-form-item>
+        <el-form-item label="详细地址" prop="detail">
+          <el-input
+            v-model="addrForm.detail"
             type="textarea"
             :rows="2"
-            placeholder="省市区 + 街道门牌（如：浙江省杭州市西湖区文三路 100 号）"
+            placeholder="街道门牌、小区、楼栋等（如：文三路 100 号）"
             maxlength="120"
             show-word-limit
           />
@@ -186,7 +232,12 @@
       </el-form>
       <template #footer>
         <el-button @click="addrDialogVisible = false">取消</el-button>
-        <el-button type="primary" class="btn-primary" :loading="savingAddr" @click="saveAddr">
+        <el-button
+          type="primary"
+          class="btn-primary"
+          :loading="savingAddr"
+          @click="saveAddr"
+        >
           保存
         </el-button>
       </template>
@@ -195,9 +246,14 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, reactive, ref } from 'vue'
-import { useRouter } from 'vue-router'
-import { ElMessage, ElMessageBox, type FormInstance, type FormRules } from 'element-plus'
+import { computed, onMounted, reactive, ref } from "vue";
+import { useRouter } from "vue-router";
+import {
+  ElMessage,
+  ElMessageBox,
+  type FormInstance,
+  type FormRules,
+} from "element-plus";
 import {
   addAddress,
   deleteAddress,
@@ -205,30 +261,35 @@ import {
   setDefaultAddress,
   updateAddress,
   updateProfile,
-} from '@/api/member'
-import { changePassword } from '@/api/auth'
-import type { MemberAddressVO, MemberProfileUpdateRequest, MemberVO } from '@/api/types'
-import { useUserStore } from '@/stores/user'
+} from "@/api/member";
+import { changePassword } from "@/api/auth";
+import type {
+  MemberAddressVO,
+  MemberProfileUpdateRequest,
+  MemberVO,
+} from "@/api/types";
+import { useUserStore } from "@/stores/user";
+import RegionCascade from "@/components/RegionCascade.vue";
 
-const router = useRouter()
-const userStore = useUserStore()
+const router = useRouter();
+const userStore = useUserStore();
 
-const activePanel = ref('profile')
-const profile = ref<MemberVO | null>(null)
-const addresses = ref<MemberAddressVO[]>([])
+const activePanel = ref("profile");
+const profile = ref<MemberVO | null>(null);
+const addresses = ref<MemberAddressVO[]>([]);
 
 const avatarText = computed(() => {
-  const name = profile.value?.name || userStore.displayName || '会'
-  return name.slice(0, 1)
-})
+  const name = profile.value?.name || userStore.displayName || "会";
+  return name.slice(0, 1);
+});
 
 /* ---------- 我的资料 ---------- */
-const profileForm = ref<MemberProfileUpdateRequest | null>(null)
-const savingProfile = ref(false)
+const profileForm = ref<MemberProfileUpdateRequest | null>(null);
+const savingProfile = ref(false);
 
 async function saveProfile() {
-  if (!profileForm.value) return
-  savingProfile.value = true
+  if (!profileForm.value) return;
+  savingProfile.value = true;
   try {
     await updateProfile({
       name: profileForm.value.name?.trim() || undefined,
@@ -236,153 +297,171 @@ async function saveProfile() {
       birthday: profileForm.value.birthday,
       phone: profileForm.value.phone,
       email: profileForm.value.email,
-    })
-    ElMessage.success('资料已更新')
-    loadAll()
+    });
+    ElMessage.success("资料已更新");
+    loadAll();
   } finally {
-    savingProfile.value = false
+    savingProfile.value = false;
   }
 }
 
 /* ---------- 地址管理 ---------- */
-const addrDialogVisible = ref(false)
-const savingAddr = ref(false)
-const editingAddr = ref<MemberAddressVO | null>(null)
-const addrFormRef = ref<FormInstance>()
+const addrDialogVisible = ref(false);
+const savingAddr = ref(false);
+const editingAddr = ref<MemberAddressVO | null>(null);
+const addrFormRef = ref<FormInstance>();
+const addrCascadeKey = ref(0);
+const editingInitialFull = ref("");
 const addrForm = reactive({
-  receiver: '',
-  phone: '',
-  addrDetail: '',
+  receiver: "",
+  phone: "",
+  region: "",
+  detail: "",
   isDefault: false,
-})
+});
 
 const addrRules: FormRules = {
-  receiver: [{ required: true, message: '请填写收货人', trigger: 'blur' }],
+  receiver: [{ required: true, message: "请填写收货人", trigger: "blur" }],
   phone: [
-    { required: true, message: '请填写手机号', trigger: 'blur' },
-    { pattern: /^1[3-9]\d{9}$/, message: '手机号格式不正确', trigger: 'blur' },
+    { required: true, message: "请填写手机号", trigger: "blur" },
+    { pattern: /^1[3-9]\d{9}$/, message: "手机号格式不正确", trigger: "blur" },
   ],
-  addrDetail: [{ required: true, message: '请填写详细地址', trigger: 'blur' }],
-}
+  detail: [{ required: true, message: "请填写详细地址", trigger: "blur" }],
+};
 
 function openAddrDialog(addr?: MemberAddressVO) {
-  editingAddr.value = addr ?? null
-  addrForm.receiver = addr?.receiver ?? ''
-  addrForm.phone = addr?.phone ?? ''
-  addrForm.addrDetail = addr?.addrDetail ?? ''
-  addrForm.isDefault = addr?.isDefault ?? addresses.value.length === 0
-  addrDialogVisible.value = true
+  editingAddr.value = addr ?? null;
+  addrForm.receiver = addr?.receiver ?? "";
+  addrForm.phone = addr?.phone ?? "";
+  addrForm.isDefault = addr?.isDefault ?? addresses.value.length === 0;
+
+  const full = addr?.addrDetail ?? "";
+  const idx = full.indexOf(" ");
+  if (idx >= 0) {
+    addrForm.region = full.slice(0, idx);
+    addrForm.detail = full.slice(idx + 1);
+  } else {
+    // 旧数据无区域拆分的，整段回填到详细地址
+    addrForm.region = "";
+    addrForm.detail = full;
+  }
+  editingInitialFull.value = full;
+  addrCascadeKey.value += 1;
+  addrDialogVisible.value = true;
 }
 
 async function saveAddr() {
-  await addrFormRef.value?.validate()
-  savingAddr.value = true
+  await addrFormRef.value?.validate();
+  savingAddr.value = true;
   try {
+    const addrDetail = [addrForm.region.trim(), addrForm.detail.trim()]
+      .filter(Boolean)
+      .join(" ");
     if (editingAddr.value) {
       await updateAddress(editingAddr.value.id, {
         receiver: addrForm.receiver.trim(),
         phone: addrForm.phone.trim(),
-        addrDetail: addrForm.addrDetail.trim(),
+        addrDetail,
         isDefault: addrForm.isDefault,
-      })
-      ElMessage.success('地址已更新')
+      });
+      ElMessage.success("地址已更新");
     } else {
       await addAddress({
         receiver: addrForm.receiver.trim(),
         phone: addrForm.phone.trim(),
-        addrDetail: addrForm.addrDetail.trim(),
+        addrDetail,
         isDefault: addrForm.isDefault,
-      })
-      ElMessage.success('新增地址成功')
+      });
+      ElMessage.success("新增地址成功");
     }
-    addrDialogVisible.value = false
-    loadAll()
+    addrDialogVisible.value = false;
+    loadAll();
   } finally {
-    savingAddr.value = false
+    savingAddr.value = false;
   }
 }
 
 async function onSetDefault(addr: MemberAddressVO) {
-  await setDefaultAddress(addr.id)
-  ElMessage.success(`已将「${addr.receiver}」设为默认地址`)
-  loadAll()
+  await setDefaultAddress(addr.id);
+  ElMessage.success(`已将「${addr.receiver}」设为默认地址`);
+  loadAll();
 }
 
 async function onDeleteAddr(addr: MemberAddressVO) {
   await ElMessageBox.confirm(
     `确定删除「${addr.receiver}」的这条地址吗？`,
-    '删除地址',
-    { confirmButtonText: '删除', cancelButtonText: '取消', type: 'warning' },
-  )
-  await deleteAddress(addr.id)
-  ElMessage.success('地址已删除')
-  loadAll()
+    "删除地址",
+    { confirmButtonText: "删除", cancelButtonText: "取消", type: "warning" },
+  );
+  await deleteAddress(addr.id);
+  ElMessage.success("地址已删除");
+  loadAll();
 }
 
 /* ---------- 修改密码 ---------- */
-const pwdFormRef = ref<FormInstance>()
-const savingPwd = ref(false)
+const pwdFormRef = ref<FormInstance>();
+const savingPwd = ref(false);
 const pwdForm = reactive({
-  oldPassword: '',
-  newPassword: '',
-  confirmPassword: '',
-})
+  oldPassword: "",
+  newPassword: "",
+  confirmPassword: "",
+});
 
 const pwdRules: FormRules = {
-  oldPassword: [{ required: true, message: '请输入当前密码', trigger: 'blur' }],
+  oldPassword: [{ required: true, message: "请输入当前密码", trigger: "blur" }],
   newPassword: [
-    { required: true, message: '请输入新密码', trigger: 'blur' },
-    { min: 6, max: 32, message: '密码长度为 6-32 位', trigger: 'blur' },
+    { required: true, message: "请输入新密码", trigger: "blur" },
+    { min: 6, max: 32, message: "密码长度为 6-32 位", trigger: "blur" },
   ],
   confirmPassword: [
-    { required: true, message: '请再次输入新密码', trigger: 'blur' },
+    { required: true, message: "请再次输入新密码", trigger: "blur" },
     {
       validator: (_rule, value, callback) => {
         if (value !== pwdForm.newPassword) {
-          callback(new Error('两次输入的密码不一致'))
+          callback(new Error("两次输入的密码不一致"));
         } else {
-          callback()
+          callback();
         }
       },
-      trigger: 'blur',
+      trigger: "blur",
     },
   ],
-}
+};
 
 async function savePassword() {
-  await pwdFormRef.value?.validate()
-  savingPwd.value = true
+  await pwdFormRef.value?.validate();
+  savingPwd.value = true;
   try {
-    await changePassword(pwdForm.oldPassword, pwdForm.newPassword)
-    ElMessage.success('密码修改成功，请重新登录')
+    await changePassword(pwdForm.oldPassword, pwdForm.newPassword);
+    ElMessage.success("密码修改成功，请重新登录");
     setTimeout(() => {
-      userStore.logout()
-      router.push('/login')
-    }, 800)
+      userStore.logout();
+      router.push("/login");
+    }, 800);
   } finally {
-    savingPwd.value = false
+    savingPwd.value = false;
   }
 }
 
 /* ---------- 加载 ---------- */
 function onSelect(index: string) {
-  activePanel.value = index
+  activePanel.value = index;
 }
 
 async function loadAll() {
-  const res = await getProfile()
-  profile.value = res.profile
-  addresses.value = res.addresses
+  const res = await getProfile();
+  profile.value = res.profile;
+  addresses.value = res.addresses;
   profileForm.value = {
-    name: res.profile.name ?? '',
-    sex: res.profile.sex ?? '保密',
-    birthday: res.profile.birthday ?? '',
-    phone: res.profile.phone ?? '',
-    email: res.profile.email ?? '',
-  }
+    name: res.profile.name ?? "",
+    sex: res.profile.sex ?? "保密",
+    birthday: res.profile.birthday ?? "",
+    phone: res.profile.phone ?? "",
+    email: res.profile.email ?? "",
+  };
 }
 
-onMounted(loadAll)
+onMounted(loadAll);
 </script>
 
 <style scoped>
@@ -414,7 +493,7 @@ onMounted(loadAll)
   color: #fff;
   font-size: 30px;
   font-weight: 600;
-  box-shadow: 0 4px 14px rgba(249, 115, 22, 0.35);
+  box-shadow: 0 4px 14px rgba(37, 99, 235, 0.35);
 }
 
 .profile-name {
@@ -567,7 +646,7 @@ onMounted(loadAll)
 
   .user-menu {
     margin-top: 16px;
-    border-top: 1px solid #f0ede9;
+    border-top: 1px solid #e5eaf2;
     display: flex;
   }
 

@@ -16,4 +16,6 @@ public class CartEntity {
     private Integer goodId;
     /** 数量 */
     private Integer qty;
+    /** 是否选中（勾选结算） */
+    private Boolean selected;
 }

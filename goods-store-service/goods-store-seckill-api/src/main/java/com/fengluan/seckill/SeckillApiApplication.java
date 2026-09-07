@@ -14,7 +14,7 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 @SpringBootApplication(scanBasePackages = "com.fengluan")
 public class SeckillApiApplication {
 
-    public static void main(String[] args) {
+    static void main(String[] args) {
         SpringApplication.run(SeckillApiApplication.class, args);
     }
 }

@@ -11,4 +11,5 @@ public class CartVO {
     private Long memberId;
     private Long goodId;
     private Integer qty;
+    private Boolean selected;
 }

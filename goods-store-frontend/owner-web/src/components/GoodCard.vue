@@ -20,7 +20,10 @@
           <span class="price">
             <span class="price-symbol">¥</span>{{ good.price }}
           </span>
-          <span v-if="good.markPrice && good.markPrice > good.price" class="price-origin">
+          <span
+            v-if="good.markPrice && good.markPrice > good.price"
+            class="price-origin"
+          >
             ¥{{ good.markPrice }}
           </span>
         </div>
@@ -33,32 +36,35 @@
 </template>
 
 <script setup lang="ts">
-import { ElMessage } from 'element-plus'
-import { useRouter } from 'vue-router'
-import { useUserStore } from '@/stores/user'
-import { useCartStore } from '@/stores/cart'
-import { cartAdd } from '@/api/cart'
-import type { GoodVO } from '@/api/types'
+import { ElMessage } from "element-plus";
+import { useRouter } from "vue-router";
+import { useUserStore } from "@/stores/user";
+import { useCartStore } from "@/stores/cart";
+import { cartAdd } from "@/api/cart";
+import type { GoodVO } from "@/api/types";
 
-const props = defineProps<{ good: GoodVO }>()
+const props = defineProps<{ good: GoodVO }>();
 
-const router = useRouter()
-const userStore = useUserStore()
-const cartStore = useCartStore()
+const router = useRouter();
+const userStore = useUserStore();
+const cartStore = useCartStore();
 
 function goDetail() {
-  router.push(`/product/${props.good.id}`)
+  router.push(`/product/${props.good.id}`);
 }
 
 async function addCart() {
   if (!userStore.isLogin) {
-    ElMessage.warning('先登录，再来加购心仪好物吧～')
-    router.push({ path: '/login', query: { redirect: router.currentRoute.value.fullPath } })
-    return
+    ElMessage.warning("先登录，再来加购心仪好物吧～");
+    router.push({
+      path: "/login",
+      query: { redirect: router.currentRoute.value.fullPath },
+    });
+    return;
   }
-  await cartAdd(props.good.id, 1)
-  cartStore.refresh()
-  ElMessage.success('已加入购物车')
+  await cartAdd(props.good.id, 1);
+  cartStore.refresh();
+  ElMessage.success("已加入购物车");
 }
 </script>
 
@@ -73,13 +79,13 @@ async function addCart() {
   position: relative;
   aspect-ratio: 1;
   overflow: hidden;
-  background: #f5f2ee;
+  background: #eef2f7;
 }
 
 .pic {
   width: 100%;
   height: 100%;
-  transition: transform 0.4s ease;
+  transition: transform 0.4s var(--ease);
 }
 
 .good-card:hover .pic {
@@ -92,22 +98,23 @@ async function addCart() {
   top: 10px;
   left: 10px;
   padding: 2px 10px;
-  border-radius: 999px;
+  border-radius: 2px;
   font-size: 12px;
   color: #fff;
   font-weight: 600;
+  letter-spacing: 1px;
 }
 
 .hot-tag {
   background: var(--primary-gradient);
-  box-shadow: 0 2px 8px rgba(249, 115, 22, 0.4);
+  box-shadow: 0 2px 8px rgba(37, 99, 235, 0.4);
 }
 
 .seckill-tag {
   left: auto;
   right: 10px;
-  background: linear-gradient(135deg, #34d399 0%, #10b981 100%);
-  box-shadow: 0 2px 8px rgba(16, 185, 129, 0.4);
+  background: var(--accent-hot-gradient);
+  box-shadow: 0 2px 8px rgba(239, 68, 68, 0.4);
 }
 
 .info {
@@ -153,21 +160,26 @@ async function addCart() {
   justify-content: center;
   width: 32px;
   height: 32px;
-  border: none;
-  border-radius: 50%;
-  color: #fff;
-  background: var(--primary-gradient);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--primary);
+  background: #fff;
   cursor: pointer;
-  box-shadow: 0 3px 10px rgba(249, 115, 22, 0.35);
-  transition: transform 0.2s, box-shadow 0.2s;
+  transition:
+    background-color 0.25s var(--ease),
+    color 0.25s var(--ease),
+    border-color 0.25s var(--ease),
+    box-shadow 0.25s var(--ease);
 }
 
 .add-cart-btn:hover {
-  transform: scale(1.12);
-  box-shadow: 0 5px 14px rgba(249, 115, 22, 0.5);
+  color: #fff;
+  background: var(--primary);
+  border-color: var(--primary);
+  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.35);
 }
 
 .add-cart-btn:active {
-  transform: scale(0.95);
+  transform: scale(0.92);
 }
 </style>

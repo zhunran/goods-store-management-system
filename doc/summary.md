@@ -242,6 +242,42 @@
 
 ---
 
+## 八、SkyWalking 接入（2026-09-05）
+
+> 8 个服务（gateway / web / auth / brand / product / member / trade / seckill）以 `-javaagent` 三参数零代码侵入接入，OAP + UI + MySQL 存储就绪。计划与实测结论详见 `doc/schedule/stage-4-plan/skywalking-integration-plan.md`（第九节为实施结果回写）。
+
+### 26. OAP 在 JDK 25 下启动即崩溃
+
+- **现象**：`skywalking\apache-skywalking-apm-bin\bin\startup.bat` 启动后 OAP 进程数秒内退出，日志抛 Groovy/ASM 相关异常。
+- **原因**：SkyWalking 9.7.0 的 OAP 内嵌 Groovy 4.0.15，其携带的 ASM 不支持 class 文件 major 69（Java 25）；本机默认 JDK 25 直启崩溃。
+- **方案**：OAP 固定用 JDK 17 运行——`skywalking\apache-skywalking-apm-bin\bin\oapService.bat` 已显式指向本机 JDK 17；业务 JVM（JDK 25）挂 Agent 不受影响。
+
+### 27. MySQL 存储建表规则与预期不符（无 sw\_ 前缀，按天滚动）
+
+- **现象**：按手册执行 `SHOW TABLES LIKE 'sw\_%'` 查不到任何表，误判 OAP 未建表。
+- **原因**：MySQL 存储器建表规则为「模型名\_yyyyMMdd」（如 `service_traffic_20260905`、`segment_20260905`），当天全量约 60 张，且按天滚动。
+- **方案**：核对改用 `SHOW TABLES LIKE '%_20260905'`；清理/回滚按日期后缀批量删表。
+
+### 28. Spring Framework 7 下 spring-mvc 插件失活，入口 Span 由 Tomcat 插件接管
+
+- **现象**：Agent 日志中 spring-mvc v3/v4/v5 的 RestControllerInstrumentation 全部 `not activated. Witness class ... does not exist`。
+- **原因**：v4 witness `DefaultKeyGenerator`、v5 witness `AnnotationBeanUtils` 在 Spring Framework 7 中已移除；Agent 9.7.0 尚无 Spring 7 专用插件。
+- **方案**：Tomcat 插件正常激活，承担 MVC 服务入口 Span（endpoint 名为 `GET:/brand/api/page` 形式的 URL 而非方法签名），观测能力等价，接受降级运行。
+
+### 29. 网关（WebFlux）入口 Span 命名降级，但 sw8 跨服务传播正常
+
+- **现象**：网关日志抛 `NoSuchMethodError: HttpHeaders.get(Object)`（webflux-6.x 插件）；gateway-4.x 插件 witness 不匹配未激活。
+- **实测**：`SpringCloudGateway/sendRequest` Exit Span 正常，sw8 传播完整——`/app/api/product/list` 一条 Trace 串起 gateway→web→product-api→brand-api 共 4 服务 46 Span，refs 正确，拓扑边齐全。
+- **方案**：接受入口 Span 命名降级（URL 形式而非路由谓词），传播与拓扑不受影响。
+
+### 30. 错误追踪：一条 Trace 直接定位 SQL 层缺陷
+
+- **场景**：管理端登录 500 的业务缺陷（SQL 查询 member 表中不存在的 `status` 列）。
+- **验证**：SkyWalking 完整捕获——相关服务两层 segment is_error=1，JDBC Span 携带 error.kind/message/stack 事件，从 Trace 页可直接读出 `Unknown column 'status' in 'field list'`。
+- **要点**：接入 APM 后，「业务 500」的定位路径从逐服务翻日志缩短为查一条 Trace；另由 Trace 直观暴露了商品列表的 N+1 查询（每商品逐一调 brand-api）。
+
+---
+
 ## 关键经验总结
 
 1. **Spring Boot 4 + MyBatis-Plus 必须用 `mybatis-plus-spring-boot4-starter`**，并补 `extension`、`jsqlparser`。
@@ -257,3 +293,9 @@
 11. **全局异常处理器必须区分业务码（四位 1xxx~6xxx）与 HTTP 状态码（三位）**：`<1000` 按 HTTP 语义透传，`>=1000` 统一 400，否则业务异常全部被误报为 500。
 12. **实体映射前先核对真实表结构**：`bit(1)` 对应 Boolean；列名以导出的表结构为准（如 member 表是 `enabled` 而非 `status`）。
 13. **Redis 预热 job 的覆盖范围要与业务时序对齐**（商品可能在活动进行中才添加），键不存在时抢购链路需即时回源兜底，而非直接判售空。
+14. **SkyWalking 9.7.0 的 OAP 必须用 JDK 17 运行**（内嵌 Groovy 4.0.15 的 ASM 不支持 JDK 25 class 文件）；业务 JVM（JDK 25）挂 Agent 无碍。
+15. **Spring Framework 7 下 Agent 9.7.0 的 spring-mvc / webflux / gateway 插件 witness 失活属官方生态缺口**：入口 Span 由 Tomcat 插件接管（URL 命名），sw8 传播与拓扑不受影响，可接受降级运行。
+16. **SkyWalking MySQL 存储建表规则是「模型名*yyyyMMdd」（无 sw* 前缀）且按天滚动**，核对与清理都要按日期后缀操作。
+17. **JWT 签名密钥必须跨重启保持稳定、且网关与 auth-api 一致**：密钥一变，已签发的 access/refresh token 全部失效，表现为「Redis 未关闭却被迫重新登录」。
+18. **可能被环境变量覆盖的占位符（如 `jwt.secret`）必须带默认值**，否则本地无环境变量时启动即失败。
+19. **服务间 Feign 需透传完整鉴权上下文（`X-User-Id` + `Authorization`）**，下游才能二次解析 JWT 构建登录态与权限。

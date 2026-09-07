@@ -12,6 +12,7 @@ public class CartItemVO {
     private Long cartId;
     private Long goodId;
     private Integer qty;
+    private Boolean selected;
     private String goodName;
     private String goodPic;
     private BigDecimal price;

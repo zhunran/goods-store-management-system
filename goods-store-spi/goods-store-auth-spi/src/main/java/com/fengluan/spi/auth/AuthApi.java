@@ -5,6 +5,7 @@ import com.fengluan.spi.auth.dto.LoginRequest;
 import com.fengluan.spi.auth.dto.LoginResponse;
 import com.fengluan.spi.auth.dto.RefreshRequest;
 import com.fengluan.spi.auth.dto.RegisterRequest;
+import jakarta.validation.Valid;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -19,18 +20,18 @@ import org.springframework.web.bind.annotation.RequestHeader;
 public interface AuthApi {
 
     @PostMapping("/login")
-    LoginResponse login(@RequestBody LoginRequest request);
+    LoginResponse login(@Valid @RequestBody LoginRequest request);
 
     @PostMapping("/register")
-    Void register(@RequestBody RegisterRequest request);
+    Void register(@Valid @RequestBody RegisterRequest request);
 
     @PostMapping("/refresh")
-    LoginResponse refresh(@RequestBody RefreshRequest request);
+    LoginResponse refresh(@Valid @RequestBody RefreshRequest request);
 
     @PostMapping("/logout")
     Void logout(@RequestHeader("Authorization") String authorization);
 
     @PutMapping("/password")
     Void changePassword(@RequestHeader("Authorization") String authorization,
-                        @RequestBody ChangePwdRequest request);
+                        @Valid @RequestBody ChangePwdRequest request);
 }

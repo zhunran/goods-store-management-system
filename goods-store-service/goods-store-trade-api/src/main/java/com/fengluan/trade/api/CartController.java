@@ -2,6 +2,8 @@ package com.fengluan.trade.api;
 
 import com.fengluan.spi.trade.CartApi;
 import com.fengluan.spi.trade.dto.CartAddRequest;
+import com.fengluan.spi.trade.dto.CartBatchRequest;
+import com.fengluan.spi.trade.dto.CartSelectedRequest;
 import com.fengluan.spi.trade.vo.CartVO;
 import com.fengluan.trade.service.CartService;
 import com.fengluan.trade.util.CurrentUserUtil;
@@ -36,6 +38,18 @@ public class CartController implements CartApi {
     @Override
     public Void updateCartQty(@PathVariable Long cartId, @RequestParam Integer qty) {
         cartService.updateCartQty(CurrentUserUtil.currentUserId(), cartId, qty);
+        return null;
+    }
+
+    @Override
+    public Void updateSelected(@Valid @RequestBody CartSelectedRequest request) {
+        cartService.updateSelected(CurrentUserUtil.currentUserId(), request.getCartIds(), request.getSelected());
+        return null;
+    }
+
+    @Override
+    public Void removeBatch(@Valid @RequestBody CartBatchRequest request) {
+        cartService.removeBatch(CurrentUserUtil.currentUserId(), request.getCartIds());
         return null;
     }
 

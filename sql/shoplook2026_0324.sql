@@ -58,6 +58,7 @@ CREATE TABLE `cart`  (
   `member_id` int UNSIGNED NOT NULL COMMENT '会员编号',
   `good_id` int UNSIGNED NOT NULL COMMENT '商品编号。如果有sku，则关联sku表',
   `qty` int UNSIGNED NOT NULL COMMENT '数量',
+  `selected` bit(1) NOT NULL DEFAULT b'1' COMMENT '是否选中（勾选结算）',
   PRIMARY KEY (`id`) USING BTREE,
   UNIQUE INDEX `uq_member_good`(`member_id` ASC, `good_id` ASC) USING BTREE
 ) ENGINE = InnoDB AUTO_INCREMENT = 59 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '购物车表' ROW_FORMAT = DYNAMIC;
@@ -65,9 +66,9 @@ CREATE TABLE `cart`  (
 -- ----------------------------
 -- Records of cart
 -- ----------------------------
-INSERT INTO `cart` VALUES (53, 1, 1, 1);
-INSERT INTO `cart` VALUES (54, 1, 2, 2);
-INSERT INTO `cart` VALUES (55, 1, 3, 3);
+INSERT INTO `cart` VALUES (53, 1, 1, 1, 1);
+INSERT INTO `cart` VALUES (54, 1, 2, 2, 1);
+INSERT INTO `cart` VALUES (55, 1, 3, 3, 1);
 
 -- ----------------------------
 -- Table structure for category

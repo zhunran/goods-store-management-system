@@ -7,6 +7,7 @@ import com.fengluan.spi.auth.dto.LoginResponse;
 import com.fengluan.spi.auth.dto.RefreshRequest;
 import com.fengluan.spi.auth.dto.RegisterRequest;
 import lombok.RequiredArgsConstructor;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -27,6 +28,11 @@ public class WebAuthController {
     @PostMapping("/login")
     public ApiResult<LoginResponse> login(@RequestBody LoginRequest request) {
         return ApiResult.success(webAuthService.login(request));
+    }
+
+    @GetMapping("/captcha")
+    public ApiResult<CaptchaVO> captcha() {
+        return ApiResult.success(webAuthService.captcha());
     }
 
     @PostMapping("/admin/login")

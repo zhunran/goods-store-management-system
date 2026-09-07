@@ -1,9 +1,11 @@
 package com.fengluan.web.trade;
 
 import com.fengluan.common.result.ApiResult;
+import com.fengluan.spi.trade.dto.OrderPayRequest;
 import com.fengluan.spi.trade.dto.PageVO;
 import com.fengluan.spi.trade.vo.OrderDetailVO;
 import com.fengluan.spi.trade.vo.OrderVO;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
@@ -42,6 +44,21 @@ public class WebOrderMgrController {
     public ApiResult<Void> confirm(@RequestHeader(value = "X-User-Id", required = false) Long memberId,
                                    @PathVariable Long id) {
         webOrderMgrService.confirm(memberId, id);
+        return ApiResult.success(null);
+    }
+
+    @PutMapping("/{id}/pay")
+    public ApiResult<Void> pay(@RequestHeader(value = "X-User-Id", required = false) Long memberId,
+                               @PathVariable Long id,
+                               @Valid @RequestBody OrderPayRequest request) {
+        webOrderMgrService.pay(memberId, id, request);
+        return ApiResult.success(null);
+    }
+
+    @PutMapping("/{id}/refund")
+    public ApiResult<Void> refund(@RequestHeader(value = "X-User-Id", required = false) Long memberId,
+                                  @PathVariable Long id) {
+        webOrderMgrService.refund(memberId, id);
         return ApiResult.success(null);
     }
 }

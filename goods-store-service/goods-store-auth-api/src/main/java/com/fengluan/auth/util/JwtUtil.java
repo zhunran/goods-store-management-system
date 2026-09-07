@@ -24,16 +24,22 @@ public class JwtUtil {
 
     private final SecretKey key;
 
-    public JwtUtil(@Value("${jwt.secret:change-me-this-is-a-very-long-32byte-secret-key!!}") String secret) {
+    public JwtUtil(@Value("${jwt.secret}") String secret) {
         this.key = Keys.hmacShaKeyFor(secret.getBytes(StandardCharsets.UTF_8));
     }
 
-    /** 生成 Access Token，携带 subject(userId)、type(member/admin)、roles */
+    /** 生成 Access Token，携带 subject(userId)、type(member/admin)、roles；权限码默认空 */
     public String generateAccessToken(String userId, String type, List<String> roles) {
+        return generateAccessToken(userId, type, roles, List.of());
+    }
+
+    /** 生成 Access Token，携带 subject(userId)、type(member/admin)、roles、permissions */
+    public String generateAccessToken(String userId, String type, List<String> roles, List<String> permissions) {
         return Jwts.builder()
                 .subject(userId)
                 .claim("type", type)
                 .claim("roles", roles)
+                .claim("permissions", permissions)
                 .issuedAt(new Date())
                 .expiration(new Date(System.currentTimeMillis() + ACCESS_MIN))
                 .signWith(key)

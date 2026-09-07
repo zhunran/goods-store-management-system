@@ -37,4 +37,10 @@ public class WebOrderAdminController {
         webOrderMgrService.ship(id);
         return ApiResult.success();
     }
+
+    @PutMapping("/{id}/refund")
+    public ApiResult<Void> refund(@PathVariable Long id) {
+        webOrderMgrService.adminRefund(id);
+        return ApiResult.success();
+    }
 }

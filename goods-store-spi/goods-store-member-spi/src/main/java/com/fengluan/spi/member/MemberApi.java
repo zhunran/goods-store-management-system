@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestParam;
 
 import java.util.List;
 
@@ -36,6 +37,10 @@ public interface MemberApi {
     /** 编辑会员资料 */
     @PutMapping("/{id}")
     MemberVO updateProfile(@PathVariable Long id, @Valid @RequestBody MemberProfileUpdateRequest request);
+
+    /** 启用/禁用会员（管理端，enabled=false 禁用后该会员重新登录被拒） */
+    @PutMapping("/{id}/enabled")
+    MemberVO setEnabled(@PathVariable Long id, @RequestParam("enabled") Boolean enabled);
 
     // —— 收货地址 ——
     /** 地址列表 */

@@ -2,22 +2,23 @@ package com.fengluan.auth.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
-
-import static org.springframework.security.config.Customizer.withDefaults;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 /**
  * 认证服务安全配置。
- * <p>JWT 解签统一放在网关 JwtAuthFilter（Day2 已建）。auth-api 内的 Security 仅作兜底，
- * 放行登录/注册/刷新，其余请求要求认证，便于后续用 {@code @PreAuthorize} 控制管理员角色。</p>
+ * <p>JWT 解签统一放在网关 JwtAuthFilter；auth-api 内通过 JwtAuthenticationFilter 二次解析，
+ * 将 roles/permissions 映射为 authorities，供 {@code @PreAuthorize} 控制管理员角色。</p>
  */
 @Configuration
 @EnableWebSecurity
+@EnableMethodSecurity
 public class SecurityConfig {
 
     @Bean
@@ -26,7 +27,8 @@ public class SecurityConfig {
     }
 
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+    public SecurityFilterChain securityFilterChain(HttpSecurity http,
+                                                   JwtAuthenticationFilter jwtAuthenticationFilter) throws Exception {
         http.csrf(csrf -> csrf.disable())
                 .formLogin(form -> form.disable())
                 .httpBasic(basic -> basic.disable())
@@ -36,9 +38,11 @@ public class SecurityConfig {
                                 "/auth/api/login",
                                 "/auth/api/register",
                                 "/auth/api/refresh",
-                                "/auth/api/admin/login"
+                                "/auth/api/admin/login",
+                                "/auth/api/admin/refresh"
                         ).permitAll()
                         .anyRequest().authenticated())
+                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
                 .exceptionHandling(e -> e.authenticationEntryPoint(
                         (req, res, ex) -> res.setStatus(401)));
         return http.build();

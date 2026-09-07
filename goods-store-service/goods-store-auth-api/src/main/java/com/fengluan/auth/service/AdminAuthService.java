@@ -68,7 +68,7 @@ public class AdminAuthService {
 
         List<String> permissions = permissionCodes(roleIds);
 
-        String accessToken = jwtUtil.generateAccessToken(u.getId().toString(), "admin", roleCodes);
+        String accessToken = jwtUtil.generateAccessToken(u.getId().toString(), "admin", roleCodes, permissions);
         String refreshToken = jwtUtil.generateRefreshToken(u.getId().toString());
         tokenService.saveRefresh(u.getId().toString(), TYPE, refreshToken);
 
@@ -111,11 +111,20 @@ public class AdminAuthService {
         List<String> roleCodes = roleIds.isEmpty() ? List.of()
                 : roleMapper.selectBatchIds(roleIds).stream().map(RoleEntity::getCode).toList();
 
-        String accessToken = jwtUtil.generateAccessToken(u.getId().toString(), TYPE, roleCodes);
+        List<String> permissions = permissionCodes(roleIds);
+
+        String accessToken = jwtUtil.generateAccessToken(u.getId().toString(), TYPE, roleCodes, permissions);
         return LoginResponse.builder()
                 .accessToken(accessToken)
                 .refreshToken(req.getRefreshToken())
                 .expiresIn(jwtUtil.getAccessExpireMs() / 1000)
+                .userInfo(LoginResponse.UserInfo.builder()
+                        .userId(u.getId())
+                        .account(u.getUsername())
+                        .type(TYPE)
+                        .roles(roleCodes)
+                        .permissions(permissions)
+                        .build())
                 .build();
     }
 

@@ -30,8 +30,13 @@ service.interceptors.request.use((config: InternalAxiosRequestConfig) => {
 service.interceptors.response.use(
   (response: AxiosResponse<ApiResult>) => {
     const res = response.data;
-    // 直接返回业务数据（后端 ApiResult.success(data) 的 code 为 200）
-    if (res.code === 200 || res.success) {
+    // 直接返回业务数据（HTTP 2xx 视为成功；Void 接口 code 可能为 null/undefined）
+    if (
+      res.code === 200 ||
+      res.success ||
+      res.code === null ||
+      res.code === undefined
+    ) {
       return res.data as any;
     }
     // 401 未登录/过期

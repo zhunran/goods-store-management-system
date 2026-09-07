@@ -13,6 +13,8 @@ public class MemberVO {
     private String pinyin;
     private String sex;
     private LocalDate birthday;
+    /** 是否启用（管理端启用/禁用） */
+    private Boolean enabled;
     /** 手机号（脱敏值，3-4-4） */
     private String phone;
     /** 身份证号脱敏（仅保留前后4位） */

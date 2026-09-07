@@ -14,7 +14,13 @@ public class CorsConfig {
     @Bean
     public CorsWebFilter corsWebFilter(){
         CorsConfiguration corsConfiguration=new CorsConfiguration();
-        corsConfiguration.setAllowedOriginPatterns(List.of("*"));
+        // 仅放行可信前端域名，避免通配 Origin + allowCredentials 带来的反射/CSRF 风险
+        corsConfiguration.setAllowedOrigins(List.of(
+                "http://localhost:5173",
+                "http://localhost:5174",
+                "http://127.0.0.1:5173",
+                "http://127.0.0.1:5174"
+        ));
         corsConfiguration.setAllowedMethods(List.of("*"));
         corsConfiguration.setAllowedHeaders(List.of("*"));
         corsConfiguration.setMaxAge(Duration.ofSeconds(3600));

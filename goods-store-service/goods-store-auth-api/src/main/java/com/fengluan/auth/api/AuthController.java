@@ -7,6 +7,7 @@ import com.fengluan.spi.auth.dto.LoginRequest;
 import com.fengluan.spi.auth.dto.LoginResponse;
 import com.fengluan.spi.auth.dto.RefreshRequest;
 import com.fengluan.spi.auth.dto.RegisterRequest;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -25,18 +26,18 @@ public class AuthController implements AuthApi {
     private final AuthService authService;
 
     @Override
-    public LoginResponse login(@RequestBody LoginRequest request) {
+    public LoginResponse login(@Valid @RequestBody LoginRequest request) {
         return authService.login(request);
     }
 
     @Override
-    public Void register(@RequestBody RegisterRequest request) {
+    public Void register(@Valid @RequestBody RegisterRequest request) {
         authService.register(request);
         return null;
     }
 
     @Override
-    public LoginResponse refresh(@RequestBody RefreshRequest request) {
+    public LoginResponse refresh(@Valid @RequestBody RefreshRequest request) {
         return authService.refresh(request);
     }
 
@@ -49,7 +50,7 @@ public class AuthController implements AuthApi {
     @Override
     @PutMapping("/password")
     public Void changePassword(@RequestHeader("Authorization") String authorization,
-                               @RequestBody ChangePwdRequest request) {
+                               @Valid @RequestBody ChangePwdRequest request) {
         authService.changePassword(authorization, request);
         return null;
     }

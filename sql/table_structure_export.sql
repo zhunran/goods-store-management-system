@@ -39,9 +39,13 @@ CREATE TABLE `cart` (
   `member_id` int UNSIGNED NOT NULL COMMENT '会员编号',
   `good_id` int UNSIGNED NOT NULL COMMENT '商品编号。如果有sku，则关联sku表',
   `qty` int UNSIGNED NOT NULL COMMENT '数量',
+  `selected` bit(1) NOT NULL DEFAULT b'1' COMMENT '是否选中（勾选结算）',
   PRIMARY KEY (`id`) USING BTREE,
   UNIQUE INDEX `uq_member_good`(`member_id` ASC, `good_id` ASC) USING BTREE
 ) ENGINE = InnoDB AUTO_INCREMENT = 59 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '购物车表' ROW_FORMAT = DYNAMIC;
+
+-- 已存在库增量升级：购物车勾选字段
+-- ALTER TABLE `cart` ADD COLUMN `selected` bit(1) NOT NULL DEFAULT b'1' COMMENT '是否选中（勾选结算）' AFTER `qty`;
 
 -- ----------------------------
 -- 3. 商品类别表
@@ -597,5 +601,24 @@ CREATE TABLE `role_permission` (
   PRIMARY KEY (`id`) USING BTREE,
   UNIQUE INDEX `uk_role_perm`(`role_id` ASC, `permission_id` ASC) USING BTREE
 ) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '角色权限关联表' ROW_FORMAT = DYNAMIC;
+
+-- ----------------------------
+-- 31. 支付流水表（Stage 5 模拟支付，雪花ID）
+-- ----------------------------
+DROP TABLE IF EXISTS `pay_log`;
+CREATE TABLE `pay_log` (
+  `id` bigint NOT NULL COMMENT '雪花ID',
+  `order_id` int NULL DEFAULT NULL COMMENT '订单编号（order.id）',
+  `order_no` varchar(32) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL COMMENT '订单编号',
+  `member_account` varchar(32) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL COMMENT '会员账号',
+  `biz_type` varchar(10) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL COMMENT '业务类型：PAY-支付 / REFUND-退款',
+  `channel` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL COMMENT '渠道：ALIPAY/WECHAT（均模拟）',
+  `trade_no` varchar(64) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL COMMENT '模拟渠道流水号（雪花生成）',
+  `amount` decimal(10, 2) NOT NULL COMMENT '金额',
+  `created_time` datetime NOT NULL COMMENT '创建时间',
+  PRIMARY KEY (`id`) USING BTREE,
+  UNIQUE INDEX `uk_order_biz`(`order_id` ASC, `biz_type` ASC) USING BTREE,
+  INDEX `idx_order_no`(`order_no` ASC) USING BTREE
+) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '支付/退款流水（模拟）' ROW_FORMAT = DYNAMIC;
 
 SET FOREIGN_KEY_CHECKS = 1;

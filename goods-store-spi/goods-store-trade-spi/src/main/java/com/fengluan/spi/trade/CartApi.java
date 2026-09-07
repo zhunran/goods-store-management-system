@@ -1,6 +1,8 @@
 package com.fengluan.spi.trade;
 
 import com.fengluan.spi.trade.dto.CartAddRequest;
+import com.fengluan.spi.trade.dto.CartBatchRequest;
+import com.fengluan.spi.trade.dto.CartSelectedRequest;
 import com.fengluan.spi.trade.vo.CartVO;
 import jakarta.validation.Valid;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -31,6 +33,14 @@ public interface CartApi {
     /** 修改数量 */
     @PutMapping("/cart/{cartId}")
     Void updateCartQty(@PathVariable Long cartId, @RequestParam Integer qty);
+
+    /** 批量勾选/取消勾选 */
+    @PutMapping("/cart/selected")
+    Void updateSelected(@Valid @RequestBody CartSelectedRequest request);
+
+    /** 批量删除购物车项 */
+    @DeleteMapping("/cart/batch")
+    Void removeBatch(@Valid @RequestBody CartBatchRequest request);
 
     /** 删除购物车项 */
     @DeleteMapping("/cart/{cartId}")

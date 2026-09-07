@@ -4,21 +4,41 @@
     <header class="site-header">
       <div class="header-inner content-wrap">
         <router-link to="/" class="logo">
-          <el-icon :size="28" color="var(--primary)"><ShoppingBag /></el-icon>
-          <span class="logo-text">丰峦优选</span>
+          <span class="logo-mark">
+            <el-icon :size="18" color="#fff"><Cpu /></el-icon>
+          </span>
+          <span class="logo-text">丰峦智选</span>
         </router-link>
 
         <nav class="nav">
-          <router-link to="/" class="nav-link" :class="{ active: route.path === '/' }">首页</router-link>
-          <router-link to="/product" class="nav-link" :class="{ active: route.path.startsWith('/product') }">全部商品</router-link>
-          <router-link to="/seckill" class="nav-link seckill-link" :class="{ active: route.path === '/seckill' }">
+          <router-link
+            to="/"
+            class="nav-link"
+            :class="{ active: route.path === '/' }"
+            >首页</router-link
+          >
+          <router-link
+            to="/product"
+            class="nav-link"
+            :class="{ active: route.path.startsWith('/product') }"
+            >全部商品</router-link
+          >
+          <router-link
+            to="/seckill"
+            class="nav-link seckill-link"
+            :class="{ active: route.path === '/seckill' }"
+          >
             <el-icon><AlarmClock /></el-icon> 限时秒杀
           </router-link>
         </nav>
 
         <div class="header-right">
           <router-link to="/cart" class="cart-entry">
-            <el-badge :value="cartStore.count" :hidden="!cartStore.count" :max="99">
+            <el-badge
+              :value="cartStore.count"
+              :hidden="!cartStore.count"
+              :max="99"
+            >
               <el-icon :size="22"><ShoppingCart /></el-icon>
             </el-badge>
             <span class="cart-text">购物车</span>
@@ -69,45 +89,47 @@
     <footer class="site-footer">
       <div class="content-wrap footer-inner">
         <div class="footer-brand">
-          <el-icon :size="20" color="var(--primary)"><ShoppingBag /></el-icon>
-          丰峦优选
+          <el-icon :size="20" color="#60a5fa"><Cpu /></el-icon>
+          丰峦智选
         </div>
-        <p class="footer-slogan">好物不贵，优选生活每一件</p>
-        <p class="footer-copy">© 2026 丰峦优选 · Spring Cloud 微服务商城演示项目</p>
+        <p class="footer-slogan">正品数码 · 原厂质保 · 极速送达</p>
+        <p class="footer-copy">
+          © 2026 丰峦智选 · Spring Cloud 微服务商城演示项目
+        </p>
       </div>
     </footer>
   </div>
 </template>
 
 <script setup lang="ts">
-import { onMounted } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
-import { ElMessage } from 'element-plus'
-import { useUserStore } from '@/stores/user'
-import { useCartStore } from '@/stores/cart'
+import { onMounted } from "vue";
+import { useRoute, useRouter } from "vue-router";
+import { ElMessage } from "element-plus";
+import { useUserStore } from "@/stores/user";
+import { useCartStore } from "@/stores/cart";
 
-const route = useRoute()
-const router = useRouter()
-const userStore = useUserStore()
-const cartStore = useCartStore()
+const route = useRoute();
+const router = useRouter();
+const userStore = useUserStore();
+const cartStore = useCartStore();
 
 onMounted(() => {
   // 已登录时拉取购物车数量，导航栏展示徽标
   if (userStore.isLogin) {
-    cartStore.refresh()
+    cartStore.refresh();
   }
-})
+});
 
 async function onUserCommand(command: string) {
-  if (command === 'logout') {
-    await userStore.logout()
-    cartStore.clear()
-    ElMessage.success('已退出登录，欢迎再来逛逛～')
-    router.push('/')
-  } else if (command === 'user') {
-    router.push('/user')
-  } else if (command === 'order') {
-    router.push('/order')
+  if (command === "logout") {
+    await userStore.logout();
+    cartStore.clear();
+    ElMessage.success("已退出登录，欢迎再来逛逛～");
+    router.push("/");
+  } else if (command === "user") {
+    router.push("/user");
+  } else if (command === "order") {
+    router.push("/order");
   }
 }
 </script>
@@ -124,9 +146,10 @@ async function onUserCommand(command: string) {
   position: sticky;
   top: 0;
   z-index: 100;
-  background: rgba(255, 255, 255, 0.92);
-  backdrop-filter: blur(12px);
-  border-bottom: 1px solid rgba(61, 58, 56, 0.06);
+  background: rgba(255, 255, 255, 0.88);
+  backdrop-filter: blur(16px) saturate(1.4);
+  -webkit-backdrop-filter: blur(16px) saturate(1.4);
+  border-bottom: 1px solid rgba(15, 23, 42, 0.06);
 }
 
 .header-inner {
@@ -139,56 +162,89 @@ async function onUserCommand(command: string) {
 .logo {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 10px;
   flex-shrink: 0;
+}
+
+/* 芯片形 logo 徽标（方形锐角，精密仪器感） */
+.logo-mark {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: var(--radius-sm);
+  background: var(--primary-gradient);
+  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.35);
+  transition: transform 0.3s var(--ease);
+}
+
+.logo:hover .logo-mark {
+  transform: translateY(-1px);
 }
 
 .logo-text {
   font-size: 20px;
   font-weight: 800;
-  background: var(--primary-gradient);
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
+  color: var(--text-main);
   letter-spacing: 1px;
 }
 
 .nav {
   display: flex;
-  gap: 6px;
+  gap: 4px;
   flex: 1;
+  align-self: stretch;
 }
 
+/* 底部指示线导航（精密直角风格） */
 .nav-link {
+  position: relative;
   display: inline-flex;
   align-items: center;
-  gap: 4px;
-  padding: 8px 16px;
-  border-radius: 999px;
+  gap: 5px;
+  padding: 0 18px;
   font-size: 15px;
   color: var(--text-sub);
-  transition: color 0.2s, background 0.2s;
+  transition: color 0.25s var(--ease);
+}
+
+.nav-link::after {
+  content: "";
+  position: absolute;
+  left: 18px;
+  right: 18px;
+  bottom: 0;
+  height: 2px;
+  background: var(--primary);
+  transform: scaleX(0);
+  transition: transform 0.3s var(--ease);
 }
 
 .nav-link:hover {
   color: var(--primary);
-  background: var(--primary-light);
 }
 
 .nav-link.active {
   color: var(--primary);
-  background: var(--primary-light);
   font-weight: 600;
 }
 
+.nav-link.active::after {
+  transform: scaleX(1);
+}
+
 .seckill-link {
-  color: var(--accent-green);
+  color: var(--accent-hot);
+}
+
+.seckill-link::after {
+  background: var(--accent-hot);
 }
 
 .seckill-link:hover,
 .seckill-link.active {
-  color: #0da271;
-  background: var(--accent-green-light);
+  color: var(--accent-hover);
 }
 
 /* ---------- 右侧 ---------- */
@@ -206,7 +262,7 @@ async function onUserCommand(command: string) {
   color: var(--text-main);
   padding: 6px 10px;
   border-radius: var(--radius-sm);
-  transition: background 0.2s;
+  transition: background 0.25s var(--ease);
 }
 
 .cart-entry:hover {
@@ -221,28 +277,29 @@ async function onUserCommand(command: string) {
 .register-btn {
   font-size: 14px;
   padding: 7px 18px;
-  border-radius: 999px;
-  transition: all 0.2s;
+  border-radius: var(--radius-sm);
+  transition: all 0.25s var(--ease);
 }
 
 .login-btn {
   color: var(--primary);
-  border: 1px solid var(--primary);
+  border: 1px solid rgba(37, 99, 235, 0.4);
 }
 
 .login-btn:hover {
   background: var(--primary-light);
+  border-color: var(--primary);
 }
 
 .register-btn {
   color: #fff;
   background: var(--primary-gradient);
-  box-shadow: 0 4px 12px rgba(249, 115, 22, 0.3);
+  box-shadow: 0 4px 14px rgba(37, 99, 235, 0.35);
 }
 
 .register-btn:hover {
   transform: translateY(-1px);
-  box-shadow: 0 6px 16px rgba(249, 115, 22, 0.4);
+  box-shadow: 0 6px 18px rgba(37, 99, 235, 0.45);
 }
 
 .user-entry {
@@ -277,12 +334,12 @@ async function onUserCommand(command: string) {
   flex: 1;
 }
 
-/* ---------- 底部 ---------- */
+/* ---------- 底部（深蓝夜空） ---------- */
 .site-footer {
-  margin-top: 48px;
-  padding: 32px 0;
-  background: #fff;
-  border-top: 1px solid rgba(61, 58, 56, 0.06);
+  margin-top: 64px;
+  padding: 40px 0;
+  background: linear-gradient(180deg, #0b1e4b 0%, #0f172a 100%);
+  color: #cbd5e1;
 }
 
 .footer-inner {
@@ -295,18 +352,20 @@ async function onUserCommand(command: string) {
   gap: 6px;
   font-size: 16px;
   font-weight: 700;
+  color: #f1f5f9;
 }
 
 .footer-slogan {
-  margin-top: 8px;
+  margin-top: 10px;
   font-size: 13px;
-  color: var(--text-sub);
+  color: #94a3b8;
+  letter-spacing: 2px;
 }
 
 .footer-copy {
-  margin-top: 4px;
+  margin-top: 6px;
   font-size: 12px;
-  color: var(--text-light);
+  color: #64748b;
 }
 
 @media (max-width: 768px) {

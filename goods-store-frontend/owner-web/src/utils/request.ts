@@ -36,7 +36,12 @@ service.interceptors.response.use(
   (response: AxiosResponse<ApiResult>) => {
     const res = response.data;
     // HTTP 2xx 即成功；code=200 或 code=null（Void 接口）均返回业务数据
-    if (res.code === 200 || res.success || res.code === null || res.code === undefined) {
+    if (
+      res.code === 200 ||
+      res.success ||
+      res.code === null ||
+      res.code === undefined
+    ) {
       return res.data as any;
     }
     // 401 未登录/过期

@@ -21,6 +21,16 @@ spring:
   config:
     import:
       - optional:nacos:goods-store-common.yaml
+  data:
+    redis:
+      host: localhost
+      port: 6379
+      password:
+      lettuce:
+        pool:
+          max-active: 8
+          max-idle: 8
+          min-idle: 0
 
 snowflake:
   worker-id: 7

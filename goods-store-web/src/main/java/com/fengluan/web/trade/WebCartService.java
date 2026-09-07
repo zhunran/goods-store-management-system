@@ -2,6 +2,8 @@ package com.fengluan.web.trade;
 
 import com.fengluan.spi.product.vo.GoodVO;
 import com.fengluan.spi.trade.dto.CartAddRequest;
+import com.fengluan.spi.trade.dto.CartBatchRequest;
+import com.fengluan.spi.trade.dto.CartSelectedRequest;
 import com.fengluan.spi.trade.vo.CartVO;
 import com.fengluan.web.product.ProductFeignClient;
 import lombok.RequiredArgsConstructor;
@@ -38,12 +40,21 @@ public class WebCartService {
         tradeCartFeignClient.removeCart(cartId);
     }
 
+    public void updateSelected(Long memberId, CartSelectedRequest request) {
+        tradeCartFeignClient.updateSelected(request);
+    }
+
+    public void removeBatch(Long memberId, CartBatchRequest request) {
+        tradeCartFeignClient.removeBatch(request);
+    }
+
     /** 聚合规则 1：购物车项 + 商品主图/名称/售价 */
     private CartItemVO aggregate(CartVO cart) {
         CartItemVO vo = new CartItemVO();
         vo.setCartId(cart.getId());
         vo.setGoodId(cart.getGoodId());
         vo.setQty(cart.getQty());
+        vo.setSelected(cart.getSelected());
         GoodVO good = productFeignClient.getById(cart.getGoodId());
         if (good != null) {
             vo.setGoodName(good.getName());

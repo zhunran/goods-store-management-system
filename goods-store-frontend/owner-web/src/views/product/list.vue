@@ -37,13 +37,7 @@
         <el-button class="btn-primary" type="primary" @click="applySearch">
           <el-icon><Search /></el-icon>&nbsp;筛选
         </el-button>
-        <el-button
-          v-if="hasFilter"
-          text
-          @click="resetFilter"
-        >
-          重置
-        </el-button>
+        <el-button v-if="hasFilter" text @click="resetFilter"> 重置 </el-button>
       </div>
       <!-- 品牌筛选 -->
       <div class="filter-row" v-if="brands.length">
@@ -97,7 +91,10 @@
               <ArrowRight />
             </el-icon>
           </div>
-          <div v-if="expandedMap[c.id] && c.children?.length" class="sub-category-list">
+          <div
+            v-if="expandedMap[c.id] && c.children?.length"
+            class="sub-category-list"
+          >
             <div
               v-for="sub in c.children"
               :key="sub.id"
@@ -115,10 +112,19 @@
       <div class="result-area">
         <div v-if="loading" class="good-grid">
           <div v-for="i in 8" :key="i" class="skeleton-card card">
-            <div class="skeleton-line" style="aspect-ratio: 1; border-radius: 10px"></div>
+            <div
+              class="skeleton-line"
+              style="aspect-ratio: 1; border-radius: 6px"
+            ></div>
             <div class="skeleton-line" style="margin-top: 12px"></div>
-            <div class="skeleton-line" style="width: 60%; margin-top: 8px"></div>
-            <div class="skeleton-line" style="width: 40%; margin-top: 10px"></div>
+            <div
+              class="skeleton-line"
+              style="width: 60%; margin-top: 8px"
+            ></div>
+            <div
+              class="skeleton-line"
+              style="width: 40%; margin-top: 10px"
+            ></div>
           </div>
         </div>
         <template v-else>
@@ -145,35 +151,37 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, reactive, ref, watch } from 'vue'
-import { useRoute } from 'vue-router'
-import GoodCard from '@/components/GoodCard.vue'
-import { brandList, categoryTree, goodList } from '@/api/product'
-import type { BrandVO, CategoryTreeVO, GoodQuery, GoodVO } from '@/api/types'
+import { computed, onMounted, reactive, ref, watch } from "vue";
+import { useRoute } from "vue-router";
+import GoodCard from "@/components/GoodCard.vue";
+import { brandList, categoryTree, goodList } from "@/api/product";
+import type { BrandVO, CategoryTreeVO, GoodQuery, GoodVO } from "@/api/types";
 
-const route = useRoute()
+const route = useRoute();
 
-const loading = ref(false)
-const list = ref<GoodVO[]>([])
-const brands = ref<BrandVO[]>([])
-const categories = ref<CategoryTreeVO[]>([])
-const expandedMap = reactive<Record<string, boolean>>({})
+const loading = ref(false);
+const list = ref<GoodVO[]>([]);
+const brands = ref<BrandVO[]>([]);
+const categories = ref<CategoryTreeVO[]>([]);
+const expandedMap = reactive<Record<string, boolean>>({});
 
 // 查询条件（生效值）
-const query = reactive<Required<Pick<GoodQuery, 'pageNum' | 'pageSize'>> & GoodQuery>({
+const query = reactive<
+  Required<Pick<GoodQuery, "pageNum" | "pageSize">> & GoodQuery
+>({
   pageNum: 1,
   pageSize: 12,
-  keyword: '',
+  keyword: "",
   categoryId: undefined,
   brandId: undefined,
   minPrice: undefined,
   maxPrice: undefined,
-})
+});
 
 // 输入框缓冲值（点击筛选才生效）
-const keywordInput = ref('')
-const minPriceInput = ref<number | undefined>(undefined)
-const maxPriceInput = ref<number | undefined>(undefined)
+const keywordInput = ref("");
+const minPriceInput = ref<number | undefined>(undefined);
+const maxPriceInput = ref<number | undefined>(undefined);
 
 const hasFilter = computed(
   () =>
@@ -182,65 +190,68 @@ const hasFilter = computed(
     query.brandId !== undefined ||
     query.minPrice !== undefined ||
     query.maxPrice !== undefined,
-)
+);
 
 /**
  * 后端返回 List<GoodVO> 而非分页对象（无 total）：
  * 当本页满页时 +1 表示可能还有下一页可点；不足一页则为真实总数。
  */
 const inferredTotal = computed(() => {
-  const loaded = (query.pageNum - 1) * query.pageSize + list.value.length
-  return list.value.length === query.pageSize ? loaded + 1 : loaded
-})
+  const loaded = (query.pageNum - 1) * query.pageSize + list.value.length;
+  return list.value.length === query.pageSize ? loaded + 1 : loaded;
+});
 
 function toggleExpand(id: string) {
-  expandedMap[id] = !expandedMap[id]
+  expandedMap[id] = !expandedMap[id];
 }
 
 function applySearch() {
-  query.keyword = keywordInput.value.trim() || undefined
-  query.minPrice = minPriceInput.value ?? undefined
-  query.maxPrice = maxPriceInput.value ?? undefined
+  query.keyword = keywordInput.value.trim() || undefined;
+  query.minPrice = minPriceInput.value ?? undefined;
+  query.maxPrice = maxPriceInput.value ?? undefined;
   if (
     query.minPrice !== undefined &&
     query.maxPrice !== undefined &&
     query.minPrice > query.maxPrice
   ) {
-    ;[query.minPrice, query.maxPrice] = [query.maxPrice, query.minPrice]
-    ;[minPriceInput.value, maxPriceInput.value] = [maxPriceInput.value, minPriceInput.value]
+    [query.minPrice, query.maxPrice] = [query.maxPrice, query.minPrice];
+    [minPriceInput.value, maxPriceInput.value] = [
+      maxPriceInput.value,
+      minPriceInput.value,
+    ];
   }
-  reload()
+  reload();
 }
 
 function selectBrand(brandId: number | undefined) {
-  query.brandId = brandId
-  reload()
+  query.brandId = brandId;
+  reload();
 }
 
 function selectCategory(categoryId: number | undefined) {
-  query.categoryId = categoryId
-  reload()
+  query.categoryId = categoryId;
+  reload();
 }
 
 function resetFilter() {
-  keywordInput.value = ''
-  minPriceInput.value = undefined
-  maxPriceInput.value = undefined
-  query.keyword = undefined
-  query.brandId = undefined
-  query.categoryId = undefined
-  query.minPrice = undefined
-  query.maxPrice = undefined
-  reload()
+  keywordInput.value = "";
+  minPriceInput.value = undefined;
+  maxPriceInput.value = undefined;
+  query.keyword = undefined;
+  query.brandId = undefined;
+  query.categoryId = undefined;
+  query.minPrice = undefined;
+  query.maxPrice = undefined;
+  reload();
 }
 
 function reload() {
-  query.pageNum = 1
-  loadList()
+  query.pageNum = 1;
+  loadList();
 }
 
 async function loadList() {
-  loading.value = true
+  loading.value = true;
   try {
     list.value = await goodList({
       pageNum: query.pageNum,
@@ -250,38 +261,38 @@ async function loadList() {
       brandId: query.brandId,
       minPrice: query.minPrice,
       maxPrice: query.maxPrice,
-    })
+    });
   } finally {
-    loading.value = false
+    loading.value = false;
   }
 }
 
 /** 从路由 query 同步筛选（首页品牌街/搜索跳转入口） */
 function syncFromRoute() {
-  const { keyword, categoryId, brandId } = route.query
-  keywordInput.value = (keyword as string) || ''
-  query.keyword = (keyword as string) || undefined
-  query.categoryId = categoryId ? Number(categoryId) : undefined
-  query.brandId = brandId ? Number(brandId) : undefined
+  const { keyword, categoryId, brandId } = route.query;
+  keywordInput.value = (keyword as string) || "";
+  query.keyword = (keyword as string) || undefined;
+  query.categoryId = categoryId ? Number(categoryId) : undefined;
+  query.brandId = brandId ? Number(brandId) : undefined;
 }
 
 watch(
   () => route.query,
   () => {
-    if (route.name === 'product') {
-      syncFromRoute()
-      reload()
+    if (route.name === "product") {
+      syncFromRoute();
+      reload();
     }
   },
-)
+);
 
 onMounted(async () => {
-  syncFromRoute()
-  const [brandRes, treeRes] = await Promise.all([brandList(), categoryTree()])
-  brands.value = brandRes
-  categories.value = treeRes
-  loadList()
-})
+  syncFromRoute();
+  const [brandRes, treeRes] = await Promise.all([brandList(), categoryTree()]);
+  brands.value = brandRes;
+  categories.value = treeRes;
+  loadList();
+});
 </script>
 
 <style scoped>
@@ -341,9 +352,9 @@ onMounted(async () => {
 
 .brand-chip {
   padding: 5px 14px;
-  border-radius: 999px;
+  border-radius: var(--radius-sm);
   font-size: 13px;
-  background: #f5f2ee;
+  background: #eef2f7;
   color: var(--text-sub);
   cursor: pointer;
   transition: all 0.2s;
@@ -383,7 +394,7 @@ onMounted(async () => {
   padding: 4px 10px 12px;
   font-size: 15px;
   font-weight: 700;
-  border-bottom: 1px solid #f0ede9;
+  border-bottom: 1px solid #e5eaf2;
   margin-bottom: 8px;
 }
 
@@ -479,8 +490,8 @@ onMounted(async () => {
 
   .category-item {
     padding: 6px 12px;
-    background: #f5f2ee;
-    border-radius: 999px;
+    background: #eef2f7;
+    border-radius: var(--radius-sm);
   }
 
   .sub-category-list {

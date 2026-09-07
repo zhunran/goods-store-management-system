@@ -83,6 +83,20 @@ public class MemberServiceImpl implements MemberService {
         return toVO(memberMapper.selectById(id));
     }
 
+    @Override
+    public MemberVO setEnabled(Long id, Boolean enabled) {
+        MemberEntity existed = memberMapper.selectById(id);
+        if (existed == null) {
+            throw new BusinessException(ErrorCode.MEMBER_NOT_FOUND);
+        }
+        MemberEntity update = new MemberEntity();
+        update.setId(id);
+        update.setEnabled(enabled);
+        update.setUpdatedTime(LocalDateTime.now());
+        memberMapper.updateById(update);
+        return toVO(memberMapper.selectById(id));
+    }
+
     private MemberVO toVO(MemberEntity entity) {
         MemberVO vo = new MemberVO();
         BeanUtils.copyProperties(entity, vo);

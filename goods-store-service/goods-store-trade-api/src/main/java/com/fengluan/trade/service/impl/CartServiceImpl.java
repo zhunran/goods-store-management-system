@@ -1,6 +1,7 @@
 package com.fengluan.trade.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.spring.service.impl.ServiceImpl;
 import com.fengluan.common.exception.BusinessException;
 import com.fengluan.common.exception.ErrorCode;
@@ -56,6 +57,23 @@ public class CartServiceImpl extends ServiceImpl<CartMapper, CartEntity> impleme
         cartMapper.deleteById(cartId);
     }
 
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public void updateSelected(Long memberId, List<Long> cartIds, Boolean selected) {
+        cartMapper.update(null, new LambdaUpdateWrapper<CartEntity>()
+                .set(CartEntity::getSelected, selected)
+                .in(CartEntity::getId, cartIds)
+                .eq(CartEntity::getMemberId, memberId.intValue()));
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public void removeBatch(Long memberId, List<Long> cartIds) {
+        cartMapper.delete(new LambdaQueryWrapper<CartEntity>()
+                .in(CartEntity::getId, cartIds)
+                .eq(CartEntity::getMemberId, memberId.intValue()));
+    }
+
     /**
      * 校验商品存在、未下架、库存充足；返回商品信息
      */
@@ -86,6 +104,9 @@ public class CartServiceImpl extends ServiceImpl<CartMapper, CartEntity> impleme
     private CartVO toVO(CartEntity entity) {
         CartVO vo = new CartVO();
         BeanUtils.copyProperties(entity, vo);
+        // 实体为 Integer、VO 为 Long：BeanUtils 不跨类型拷贝，需手动转换，否则 goodId 为 null
+        vo.setMemberId(entity.getMemberId() == null ? null : entity.getMemberId().longValue());
+        vo.setGoodId(entity.getGoodId() == null ? null : entity.getGoodId().longValue());
         return vo;
     }
 }

@@ -54,6 +54,12 @@ const routes: RouteRecordRaw[] = [
         meta: { title: '确认下单', requiresAuth: true }
       },
       {
+        path: 'cashier/:id',
+        name: 'Cashier',
+        component: () => import('@/views/cashier/index.vue'),
+        meta: { title: '收银台', requiresAuth: true }
+      },
+      {
         path: 'order',
         name: 'OrderList',
         component: () => import('@/views/order/list.vue'),

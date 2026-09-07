@@ -20,16 +20,20 @@ import com.fengluan.spi.product.vo.GoodVO;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
+import tools.jackson.databind.json.JsonMapper;
 
+import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
@@ -42,6 +46,19 @@ public class GoodServiceImpl extends ServiceImpl<GoodMapper, GoodEntity> impleme
     private final GoodDetailPicsMapper goodDetailPicsMapper;
     private final BrandRemoteService brandRemoteService;
     private final GoodMapper goodMapper;
+    private final StringRedisTemplate redisTemplate;
+    private final JsonMapper jsonMapper;
+
+    /** 详情缓存 key 前缀 */
+    private static final String GOOD_CACHE_KEY = "product:good:";
+    /** 详情缓存互斥锁 key 前缀 */
+    private static final String GOOD_LOCK_KEY = "product:good:lock:";
+    /** 物理 TTL：很长，避免热 key 过期后集体回源 */
+    private static final Duration GOOD_CACHE_PHYSICAL_TTL = Duration.ofHours(24);
+    /** 逻辑 TTL：内嵌在 value 中，过期后旧值仍可用，由抢到锁的线程异步重建 */
+    private static final Duration GOOD_CACHE_LOGIC_TTL = Duration.ofMinutes(30);
+    /** 互斥锁 TTL：防止重建线程崩溃后死锁 */
+    private static final Duration GOOD_LOCK_TTL = Duration.ofSeconds(10);
 
     @Override
     public List<GoodVO> page(GoodQueryRequest query) {
@@ -66,14 +83,22 @@ public class GoodServiceImpl extends ServiceImpl<GoodMapper, GoodEntity> impleme
 
     @Override
     public GoodVO detail(Long id) {
-        GoodEntity entity = super.getById(id);
-        if (entity == null) {
-            throw new BusinessException(ErrorCode.GOOD_NOT_FOUND);
+        String key = GOOD_CACHE_KEY + id;
+        String json = redisTemplate.opsForValue().get(key);
+        if (json != null) {
+            GoodCacheValue cache = toCacheValue(json);
+            if (cache != null && cache.getData() != null) {
+                // 未逻辑过期：直接命中返回
+                if (cache.getExpireAt() > System.currentTimeMillis()) {
+                    return cache.getData();
+                }
+                // 逻辑过期：先返回旧值（保可用），抢到锁者异步重建（防 DB 打穿）
+                rebuildCacheAsync(id);
+                return cache.getData();
+            }
         }
-        GoodVO vo = toVO(entity);
-        fillNames(Collections.singletonList(vo));
-        fillDetailPics(vo);
-        return vo;
+        // 缓存不存在 / 数据损坏：互斥重建，防止并发回源击穿 DB
+        return loadDetailWithMutex(id, key);
     }
 
     @Override
@@ -108,6 +133,7 @@ public class GoodServiceImpl extends ServiceImpl<GoodMapper, GoodEntity> impleme
         if (request.getDetailPicList() != null) {
             replaceDetailPics(id, request.getDetailPicList());
         }
+        evictCache(id);
         return detail(id);
     }
 
@@ -118,6 +144,7 @@ public class GoodServiceImpl extends ServiceImpl<GoodMapper, GoodEntity> impleme
         }
         // 逻辑删除（good.is_del=1，全局 logic-delete-field 生效）
         super.removeById(id);
+        evictCache(id);
     }
 
     @Override
@@ -129,16 +156,152 @@ public class GoodServiceImpl extends ServiceImpl<GoodMapper, GoodEntity> impleme
         entity.setIsTakeDown(takeDown);
         entity.setUpdatedTime(LocalDateTime.now());
         updateById(entity);
+        evictCache(id);
     }
 
     @Override
     public boolean deductStock(Long id, Integer count) {
-        return goodMapper.deductStock(id, count) > 0;
+        boolean ok = goodMapper.deductStock(id, count) > 0;
+        if (ok) {
+            // 扣减成功后失效详情缓存，避免逻辑过期/长 TTL 旧库存继续被读 → 超卖
+            evictCache(id);
+        }
+        return ok;
     }
 
     @Override
     public void restoreStock(Long id, Integer count) {
         goodMapper.restoreStock(id, count);
+        evictCache(id);
+    }
+
+    /**
+     * 直接回源查询商品详情（含品牌/分类名 + 详情图），供缓存命中回填与重建使用
+     */
+    private GoodVO loadFromDb(Long id) {
+        GoodEntity entity = super.getById(id);
+        if (entity == null) {
+            throw new BusinessException(ErrorCode.GOOD_NOT_FOUND);
+        }
+        GoodVO vo = toVO(entity);
+        fillNames(Collections.singletonList(vo));
+        fillDetailPics(vo);
+        return vo;
+    }
+
+    /**
+     * 缓存不存在 / 数据损坏时互斥回源重建：setnx 抢锁，抢到者回源并写缓存；未抢到者短暂等待后重试读取，
+     * 仍无则直接回源兜底，保证并发下只有一次 DB 回源。
+     */
+    private GoodVO loadDetailWithMutex(Long id, String key) {
+        String lockKey = GOOD_LOCK_KEY + id;
+        boolean locked = Boolean.TRUE.equals(redisTemplate.opsForValue().setIfAbsent(lockKey, "1", GOOD_LOCK_TTL));
+        if (!locked) {
+            sleepQuietly(50);
+            String json = redisTemplate.opsForValue().get(key);
+            GoodCacheValue cache = toCacheValue(json);
+            if (cache != null && cache.getData() != null) {
+                return cache.getData();
+            }
+            return loadFromDb(id);
+        }
+        try {
+            // 抢到锁后再读一次，避免重复回源
+            String json = redisTemplate.opsForValue().get(key);
+            GoodCacheValue cache = toCacheValue(json);
+            if (cache != null && cache.getData() != null) {
+                return cache.getData();
+            }
+            GoodVO vo = loadFromDb(id);
+            writeCacheValue(id, vo);
+            return vo;
+        } finally {
+            redisTemplate.delete(lockKey);
+        }
+    }
+
+    /**
+     * 逻辑过期后的异步重建：setnx 抢锁，抢到者在后台线程回源并刷新缓存；未抢到者不作处理（旧值已返回给调用方）
+     */
+    private void rebuildCacheAsync(Long id) {
+        String lockKey = GOOD_LOCK_KEY + id;
+        boolean locked = Boolean.TRUE.equals(redisTemplate.opsForValue().setIfAbsent(lockKey, "1", GOOD_LOCK_TTL));
+        if (!locked) {
+            return;
+        }
+        CompletableFuture.runAsync(() -> {
+            try {
+                GoodVO vo = loadFromDb(id);
+                writeCacheValue(id, vo);
+            } catch (Exception e) {
+                log.warn("逻辑过期重建商品详情缓存失败, id={}", id, e);
+            } finally {
+                redisTemplate.delete(lockKey);
+            }
+        });
+    }
+
+    private void writeCacheValue(Long id, GoodVO vo) {
+        GoodCacheValue value = new GoodCacheValue(vo, System.currentTimeMillis() + GOOD_CACHE_LOGIC_TTL.toMillis());
+        try {
+            redisTemplate.opsForValue().set(GOOD_CACHE_KEY + id, jsonMapper.writeValueAsString(value), GOOD_CACHE_PHYSICAL_TTL);
+        } catch (Exception e) {
+            log.warn("写入商品详情缓存失败, id={}", id, e);
+        }
+    }
+
+    private void evictCache(Long id) {
+        redisTemplate.delete(GOOD_CACHE_KEY + id);
+    }
+
+    private GoodCacheValue toCacheValue(String json) {
+        if (json == null || json.isBlank()) {
+            return null;
+        }
+        try {
+            return jsonMapper.readValue(json, GoodCacheValue.class);
+        } catch (Exception e) {
+            log.warn("解析商品详情缓存失败，将回源重建", e);
+            return null;
+        }
+    }
+
+    private void sleepQuietly(long millis) {
+        try {
+            Thread.sleep(millis);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+        }
+    }
+
+    /** 缓存值：内嵌逻辑过期时间，物理 TTL 长、逻辑 TTL 短 */
+    private static class GoodCacheValue {
+        private GoodVO data;
+        private long expireAt;
+
+        GoodCacheValue() {
+        }
+
+        GoodCacheValue(GoodVO data, long expireAt) {
+            this.data = data;
+            this.expireAt = expireAt;
+        }
+
+        public GoodVO getData() {
+            return data;
+        }
+
+        public void setData(GoodVO data) {
+            this.data = data;
+        }
+
+        public long getExpireAt() {
+            return expireAt;
+        }
+
+        public void setExpireAt(long expireAt) {
+            this.expireAt = expireAt;
+        }
     }
 
     /**

@@ -5,6 +5,8 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.math.BigDecimal;
+
 @Data
 @Builder
 @NoArgsConstructor
@@ -20,7 +22,7 @@ public class SeckillOrderMessage {
     //会员Id
     private Long memberId;
     //秒杀价格
-    private Long seckillPrice;
+    private BigDecimal seckillPrice;
     //生成的订单号
     private String orderNo;
 }

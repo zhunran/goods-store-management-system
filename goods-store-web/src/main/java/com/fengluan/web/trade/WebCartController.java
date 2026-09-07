@@ -2,6 +2,8 @@ package com.fengluan.web.trade;
 
 import com.fengluan.common.result.ApiResult;
 import com.fengluan.spi.trade.dto.CartAddRequest;
+import com.fengluan.spi.trade.dto.CartBatchRequest;
+import com.fengluan.spi.trade.dto.CartSelectedRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -43,6 +45,20 @@ public class WebCartController {
                                      @PathVariable Long cartId,
                                      @RequestParam Integer qty) {
         webCartService.updateQty(memberId, cartId, qty);
+        return ApiResult.success();
+    }
+
+    @PutMapping("/selected")
+    public ApiResult<Void> updateSelected(@RequestHeader(value = "X-User-Id", required = false) Long memberId,
+                                          @RequestBody CartSelectedRequest request) {
+        webCartService.updateSelected(memberId, request);
+        return ApiResult.success();
+    }
+
+    @DeleteMapping("/batch")
+    public ApiResult<Void> removeBatch(@RequestHeader(value = "X-User-Id", required = false) Long memberId,
+                                       @RequestBody CartBatchRequest request) {
+        webCartService.removeBatch(memberId, request);
         return ApiResult.success();
     }
 

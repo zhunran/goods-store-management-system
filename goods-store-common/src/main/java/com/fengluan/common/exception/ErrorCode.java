@@ -48,7 +48,9 @@ public enum ErrorCode {
     AUTH_PASSWORD_ERROR(6002, "密码错误"),
     AUTH_USER_DISABLED(6003, "管理员已被禁用"),
     ROLE_NOT_FOUND(6004, "角色不存在"),
-    PERMISSION_NOT_FOUND(6005, "权限不存在");
+    PERMISSION_NOT_FOUND(6005, "权限不存在"),
+    CAPTCHA_REQUIRED(6006, "请输入验证码"),
+    CAPTCHA_ERROR(6007, "验证码错误或已过期");
     private final Integer code;
     private final String message;
 

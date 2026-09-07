@@ -38,7 +38,7 @@
               <span class="order-no">订单号：{{ o.orderNo }}</span>
               <span class="order-time">{{ o.createdTime }}</span>
             </div>
-            <el-tag :type="ORDER_STATUS_TAG[o.status]" effect="light" round>
+            <el-tag :type="ORDER_STATUS_TAG[o.status]" effect="light">
               {{ ORDER_STATUS_TEXT[o.status] || o.status }}
             </el-tag>
           </div>
@@ -60,6 +60,22 @@
                 @click.stop="onCancel(o)"
               >
                 取消订单
+              </el-button>
+              <el-button
+                v-if="o.status === '10'"
+                size="small"
+                type="primary"
+                class="btn-primary"
+                @click.stop="goPay(o)"
+              >
+                去支付
+              </el-button>
+              <el-button
+                v-if="o.status === '20'"
+                size="small"
+                @click.stop="onRefund(o)"
+              >
+                申请退款
               </el-button>
               <el-button
                 v-if="o.status === '30'"
@@ -112,7 +128,7 @@
 import { computed, onMounted, ref } from "vue";
 import { useRouter } from "vue-router";
 import { ElMessage, ElMessageBox } from "element-plus";
-import { cancelOrder, confirmOrder, orderPage } from "@/api/order";
+import { cancelOrder, confirmOrder, orderPage, refundOrder } from "@/api/order";
 import { ORDER_STATUS_TAG, ORDER_STATUS_TEXT, type OrderVO } from "@/api/types";
 
 const router = useRouter();
@@ -142,6 +158,8 @@ function statusHint(status: string) {
       return "交易完成，感谢您的信任";
     case "50":
       return "订单已取消";
+    case "60":
+      return "订单已退款";
     default:
       return "";
   }
@@ -151,6 +169,7 @@ function statusFootInfo(o: OrderVO) {
   if (o.status === "20" && o.payTime) return `支付时间：${o.payTime}`;
   if (o.status === "30" && o.shipTime) return `发货时间：${o.shipTime}`;
   if (o.status === "40" && o.checkoutTime) return `完成时间：${o.checkoutTime}`;
+  if (o.status === "60" && o.updatedTime) return `退款时间：${o.updatedTime}`;
   return "";
 }
 
@@ -176,6 +195,25 @@ function onTabChange() {
 
 function goDetail(o: OrderVO) {
   router.push(`/order/${o.id}`);
+}
+
+function goPay(o: OrderVO) {
+  router.push(`/cashier/${o.id}`);
+}
+
+async function onRefund(o: OrderVO) {
+  await ElMessageBox.confirm(
+    "确认申请退款吗？模拟退款将即时到账，且不可恢复。",
+    "申请退款",
+    {
+      confirmButtonText: "确认退款",
+      cancelButtonText: "再想想",
+      type: "warning",
+    },
+  );
+  await refundOrder(o.id);
+  ElMessage.success("退款成功，款项已原路退回");
+  loadList();
 }
 
 async function onCancel(o: OrderVO) {
@@ -223,9 +261,9 @@ onMounted(loadList);
   left: 0;
   top: 50%;
   transform: translateY(-50%);
-  width: 5px;
+  width: 4px;
   height: 18px;
-  border-radius: 3px;
+  border-radius: 0;
   background: var(--primary-gradient);
 }
 
@@ -261,7 +299,7 @@ onMounted(loadList);
   align-items: center;
   justify-content: space-between;
   padding-bottom: 14px;
-  border-bottom: 1px solid #f0ede9;
+  border-bottom: 1px solid #e5eaf2;
 }
 
 .head-left {
@@ -314,7 +352,7 @@ onMounted(loadList);
   align-items: center;
   justify-content: space-between;
   padding-top: 14px;
-  border-top: 1px solid #f0ede9;
+  border-top: 1px solid #e5eaf2;
 }
 
 .foot-info {
@@ -328,12 +366,12 @@ onMounted(loadList);
 }
 
 .btn-confirm {
-  color: var(--accent-green);
-  border-color: var(--accent-green);
+  color: var(--accent-hot);
+  border-color: var(--accent-hot);
 }
 
 .btn-confirm:hover {
-  background: var(--accent-green-light);
+  background: var(--accent-hot-light);
 }
 
 .empty-wrap {

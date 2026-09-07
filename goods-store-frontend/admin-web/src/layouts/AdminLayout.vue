@@ -10,7 +10,11 @@
         active-text-color="#ffffff"
         class="menu"
       >
-        <el-menu-item v-for="item in menuItems" :key="item.path" :index="item.path">
+        <el-menu-item
+          v-for="item in visibleMenuItems"
+          :key="item.path"
+          :index="item.path"
+        >
           <el-icon><component :is="item.icon" /></el-icon>
           <span>{{ item.title }}</span>
         </el-menu-item>
@@ -48,33 +52,65 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
-import { ElMessageBox } from 'element-plus'
-import { useUserStore } from '@/stores/user'
+import { computed } from "vue";
+import { useRoute, useRouter } from "vue-router";
+import { ElMessageBox } from "element-plus";
+import { useUserStore } from "@/stores/user";
 
-const route = useRoute()
-const router = useRouter()
-const userStore = useUserStore()
+const route = useRoute();
+const router = useRouter();
+const userStore = useUserStore();
 
 const menuItems = [
-  { path: '/dashboard', title: '数据看板', icon: 'Odometer' },
-  { path: '/product', title: '商品管理', icon: 'Goods' },
-  { path: '/brand', title: '品牌管理', icon: 'Flag' },
-  { path: '/seckill', title: '秒杀活动', icon: 'Timer' },
-  { path: '/order', title: '订单管理', icon: 'List' },
-  { path: '/member', title: '会员管理', icon: 'User' }
-]
+  {
+    path: "/dashboard",
+    title: "数据看板",
+    icon: "Odometer",
+    permission: "dashboard:view",
+  },
+  {
+    path: "/product",
+    title: "商品管理",
+    icon: "Goods",
+    permission: "good:list",
+  },
+  { path: "/brand", title: "品牌管理", icon: "Flag", permission: "brand:list" },
+  {
+    path: "/seckill",
+    title: "秒杀活动",
+    icon: "Timer",
+    permission: "seckill:list",
+  },
+  { path: "/order", title: "订单管理", icon: "List", permission: "order:list" },
+  {
+    path: "/member",
+    title: "会员管理",
+    icon: "User",
+    permission: "member:list",
+  },
+  {
+    path: "/role",
+    title: "角色管理",
+    icon: "Setting",
+    permission: "role:manage",
+  },
+];
 
-const activeMenu = computed(() => route.path)
-const currentTitle = computed(() => (route.meta.title as string) || '')
-const roleLabel = computed(() => (userStore.roles.includes('ROLE_ADMIN') ? '超级管理员' : '管理员'))
+const visibleMenuItems = computed(() =>
+  menuItems.filter((item) => userStore.hasPermission(item.permission)),
+);
+
+const activeMenu = computed(() => route.path);
+const currentTitle = computed(() => (route.meta.title as string) || "");
+const roleLabel = computed(() =>
+  userStore.roles.includes("ROLE_ADMIN") ? "超级管理员" : "管理员",
+);
 
 async function onCommand(cmd: string) {
-  if (cmd === 'logout') {
-    await ElMessageBox.confirm('确定退出登录吗？', '提示', { type: 'warning' })
-    userStore.logout()
-    router.push('/login')
+  if (cmd === "logout") {
+    await ElMessageBox.confirm("确定退出登录吗？", "提示", { type: "warning" });
+    userStore.logout();
+    router.push("/login");
   }
 }
 </script>

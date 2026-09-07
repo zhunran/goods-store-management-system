@@ -19,7 +19,12 @@
           label-position="top"
         >
           <el-form-item prop="account" label="账号">
-            <el-input v-model="form.account" placeholder="3-32 位字符" :prefix-icon="User" clearable />
+            <el-input
+              v-model="form.account"
+              placeholder="3-32 位字符"
+              :prefix-icon="User"
+              clearable
+            />
           </el-form-item>
           <el-form-item prop="password" label="密码">
             <el-input
@@ -42,16 +47,25 @@
             />
           </el-form-item>
           <el-form-item prop="phone" label="手机号">
-            <el-input v-model="form.phone" placeholder="选填，用于联系" :prefix-icon="Iphone" clearable />
+            <el-input
+              v-model="form.phone"
+              placeholder="选填，用于联系"
+              :prefix-icon="Iphone"
+              clearable
+            />
           </el-form-item>
           <el-form-item prop="email" label="邮箱">
-            <el-input v-model="form.email" placeholder="选填" :prefix-icon="Message" clearable />
+            <el-input
+              v-model="form.email"
+              placeholder="选填"
+              :prefix-icon="Message"
+              clearable
+            />
           </el-form-item>
           <el-button
             type="primary"
             class="submit-btn"
             :loading="loading"
-            round
             @click="submit"
           >
             注 册
@@ -60,7 +74,9 @@
 
         <p class="switch-line">
           已有账号？
-          <router-link class="link" :to="{ path: '/login', query: route.query }">直接登录</router-link>
+          <router-link class="link" :to="{ path: '/login', query: route.query }"
+            >直接登录</router-link
+          >
         </p>
       </div>
     </div>
@@ -68,66 +84,67 @@
 </template>
 
 <script setup lang="ts">
-import { reactive, ref } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
-import { ElMessage } from 'element-plus'
-import { User, Lock, Iphone, Message } from '@element-plus/icons-vue'
-import { register } from '@/api/auth'
-import type { RegisterRequest } from '@/api/types'
+import { reactive, ref } from "vue";
+import { useRoute, useRouter } from "vue-router";
+import { ElMessage } from "element-plus";
+import { User, Lock, Iphone, Message } from "@element-plus/icons-vue";
+import { register } from "@/api/auth";
+import type { RegisterRequest } from "@/api/types";
 
-const route = useRoute()
-const router = useRouter()
+const route = useRoute();
+const router = useRouter();
 
-const formRef = ref()
-const loading = ref(false)
+const formRef = ref();
+const loading = ref(false);
 
 const form = reactive<RegisterRequest & { confirm: string }>({
-  account: '',
-  password: '',
-  confirm: '',
-  phone: '',
-  email: '',
-})
+  account: "",
+  password: "",
+  confirm: "",
+  phone: "",
+  email: "",
+});
 
 const rules = {
   account: [
-    { required: true, message: '请输入账号', trigger: 'blur' },
-    { min: 3, max: 32, message: '账号长度 3-32 位', trigger: 'blur' },
+    { required: true, message: "请输入账号", trigger: "blur" },
+    { min: 3, max: 32, message: "账号长度 3-32 位", trigger: "blur" },
   ],
   password: [
-    { required: true, message: '请输入密码', trigger: 'blur' },
-    { min: 6, max: 32, message: '密码长度 6-32 位', trigger: 'blur' },
+    { required: true, message: "请输入密码", trigger: "blur" },
+    { min: 6, max: 32, message: "密码长度 6-32 位", trigger: "blur" },
   ],
   confirm: [
-    { required: true, message: '请再次输入密码', trigger: 'blur' },
+    { required: true, message: "请再次输入密码", trigger: "blur" },
     {
       validator: (_: unknown, value: string, callback: (e?: Error) => void) => {
-        if (value !== form.password) callback(new Error('两次输入的密码不一致'))
-        else callback()
+        if (value !== form.password)
+          callback(new Error("两次输入的密码不一致"));
+        else callback();
       },
-      trigger: 'blur',
+      trigger: "blur",
     },
   ],
   phone: [
     {
       pattern: /^1[3-9]\d{9}$/,
-      message: '手机号格式不正确',
-      trigger: 'blur',
+      message: "手机号格式不正确",
+      trigger: "blur",
     },
   ],
-  email: [{ type: 'email', message: '邮箱格式不正确', trigger: 'blur' }],
-}
+  email: [{ type: "email", message: "邮箱格式不正确", trigger: "blur" }],
+};
 
 async function submit() {
-  await formRef.value?.validate()
-  loading.value = true
+  await formRef.value?.validate();
+  loading.value = true;
   try {
-    const { confirm: _confirm, ...data } = form
-    await register(data)
-    ElMessage.success('注册成功，快去登录吧～')
-    router.push({ path: '/login', query: route.query })
+    const { confirm: _confirm, ...data } = form;
+    await register(data);
+    ElMessage.success("注册成功，快去登录吧～");
+    router.push({ path: "/login", query: route.query });
   } finally {
-    loading.value = false
+    loading.value = false;
   }
 }
 </script>
@@ -139,8 +156,16 @@ async function submit() {
   align-items: center;
   justify-content: center;
   background:
-    radial-gradient(circle at 15% 20%, rgba(249, 115, 22, 0.12), transparent 40%),
-    radial-gradient(circle at 85% 80%, rgba(16, 185, 129, 0.1), transparent 40%),
+    radial-gradient(
+      circle at 15% 20%,
+      rgba(37, 99, 235, 0.12),
+      transparent 40%
+    ),
+    radial-gradient(
+      circle at 85% 80%,
+      rgba(129, 140, 248, 0.1),
+      transparent 40%
+    ),
     var(--bg);
   padding: 24px;
 }
@@ -164,7 +189,7 @@ async function submit() {
   gap: 16px;
   padding: 48px 36px;
   color: #fff;
-  background: linear-gradient(135deg, #34d399 0%, #10b981 100%);
+  background: var(--primary-gradient);
 }
 
 .side-title {
@@ -182,7 +207,7 @@ async function submit() {
   margin-top: 24px;
   width: 96px;
   height: 96px;
-  border-radius: 28px;
+  border-radius: 12px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -191,7 +216,8 @@ async function submit() {
 }
 
 @keyframes float {
-  0%, 100% {
+  0%,
+  100% {
     transform: translateY(0);
   }
   50% {

@@ -15,5 +15,9 @@ public interface CartService extends IService<CartEntity> {
 
     void updateCartQty(Long memberId, Long cartId, Integer qty);
 
+    void updateSelected(Long memberId, List<Long> cartIds, Boolean selected);
+
+    void removeBatch(Long memberId, List<Long> cartIds);
+
     void removeCart(Long memberId, Long cartId);
 }

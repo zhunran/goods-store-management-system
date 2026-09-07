@@ -17,6 +17,13 @@ export interface LoginRequest {
   account: string;
   password: string;
   loginType?: string;
+  captchaId?: string;
+  captchaCode?: string;
+}
+
+export interface CaptchaVO {
+  captchaId: string;
+  image: string;
 }
 
 export interface RegisterRequest {
@@ -94,29 +101,32 @@ export interface CartItemVO {
   cartId: string;
   goodId: string;
   qty: number;
+  selected: boolean;
   goodName: string;
   goodPic: string;
   price: number;
 }
 
 // ---------- 订单 ----------
-/** 订单状态码：10 待付款 / 20 已支付 / 30 已发货 / 40 已完成 / 50 已取消 */
-export type OrderStatus = '10' | '20' | '30' | '40' | '50';
+/** 订单状态码：10 待付款 / 20 已支付 / 30 已发货 / 40 已完成 / 50 已取消 / 60 已退款 */
+export type OrderStatus = "10" | "20" | "30" | "40" | "50" | "60";
 
 export const ORDER_STATUS_TEXT: Record<string, string> = {
-  '10': '待付款',
-  '20': '已支付',
-  '30': '已发货',
-  '40': '已完成',
-  '50': '已取消',
+  "10": "待付款",
+  "20": "已支付",
+  "30": "已发货",
+  "40": "已完成",
+  "50": "已取消",
+  "60": "已退款",
 };
 
 export const ORDER_STATUS_TAG: Record<string, string> = {
-  '10': 'warning',
-  '20': 'primary',
-  '30': 'info',
-  '40': 'success',
-  '50': 'danger',
+  "10": "warning",
+  "20": "primary",
+  "30": "info",
+  "40": "success",
+  "50": "danger",
+  "60": "danger",
 };
 
 export interface OrderItemVO {
@@ -158,6 +168,7 @@ export interface OrderPageVO {
 }
 
 export interface OrderCreateResponse {
+  id: string;
   orderNo: string;
   totalPay: number;
   status: string;
@@ -207,7 +218,7 @@ export interface MemberAddressRequest {
 }
 
 // ---------- 秒杀 ----------
-export type SeckillStatus = 'NOT_STARTED' | 'IN_PROGRESS' | 'ENDED';
+export type SeckillStatus = "NOT_STARTED" | "IN_PROGRESS" | "ENDED";
 
 export interface SeckillGoodVO {
   id: string;
@@ -221,7 +232,8 @@ export interface SeckillGoodVO {
   startTime?: string;
   endTime?: string;
   status: SeckillStatus | string;
-  countdownSec: number;
+  /** 后端 Long 经全局 Jackson 序列化为字符串，如 "0" */
+  countdownSec: string;
   /** 剩余库存（Redis 预热后返回；未预热为 null 不算售空。Long 经全局序列化为字符串） */
   stockLeft?: string | null;
   /** 当前用户是否已抢到 */

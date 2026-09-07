@@ -7,6 +7,7 @@ import com.fengluan.common.mq.SeckillOrderMessage;
 import org.junit.jupiter.api.Test;
 import tools.jackson.databind.json.JsonMapper;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
@@ -65,7 +66,7 @@ class CommonDay1Test {
 
         SeckillOrderMessage seckill = SeckillOrderMessage.builder()
                 .seckillId(1L).seckillGoodId(2L).goodId(3L).memberId(4L)
-                .seckillPrice(1000L).orderNo("1940000000000000002")
+                .seckillPrice(new BigDecimal("1000")).orderNo("1940000000000000002")
                 .build();
         SeckillOrderMessage seckillBack = mapper.readValue(
                 mapper.writeValueAsString(seckill), SeckillOrderMessage.class);

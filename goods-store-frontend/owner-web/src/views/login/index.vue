@@ -19,7 +19,12 @@
           @keyup.enter="submit"
         >
           <el-form-item prop="account">
-            <el-input v-model="form.account" placeholder="请输入账号" :prefix-icon="User" clearable />
+            <el-input
+              v-model="form.account"
+              placeholder="请输入账号"
+              :prefix-icon="User"
+              clearable
+            />
           </el-form-item>
           <el-form-item prop="password">
             <el-input
@@ -31,11 +36,28 @@
               clearable
             />
           </el-form-item>
+          <el-form-item prop="captchaCode">
+            <div class="captcha-row">
+              <el-input
+                v-model="form.captchaCode"
+                placeholder="请输入验证码"
+                maxlength="4"
+                clearable
+              />
+              <img
+                v-if="captchaImage"
+                class="captcha-img"
+                :src="captchaImage"
+                alt="验证码"
+                title="点击刷新"
+                @click="refreshCaptcha"
+              />
+            </div>
+          </el-form-item>
           <el-button
             type="primary"
             class="submit-btn"
             :loading="loading"
-            round
             @click="submit"
           >
             登 录
@@ -44,7 +66,11 @@
 
         <p class="switch-line">
           还没有账号？
-          <router-link class="link" :to="{ path: '/register', query: route.query }">立即注册</router-link>
+          <router-link
+            class="link"
+            :to="{ path: '/register', query: route.query }"
+            >立即注册</router-link
+          >
         </p>
       </div>
     </div>
@@ -52,43 +78,64 @@
 </template>
 
 <script setup lang="ts">
-import { reactive, ref } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
-import { ElMessage } from 'element-plus'
-import { User, Lock } from '@element-plus/icons-vue'
-import { useUserStore } from '@/stores/user'
-import { useCartStore } from '@/stores/cart'
+import { onMounted, reactive, ref } from "vue";
+import { useRoute, useRouter } from "vue-router";
+import { ElMessage } from "element-plus";
+import { User, Lock } from "@element-plus/icons-vue";
+import { useUserStore } from "@/stores/user";
+import { useCartStore } from "@/stores/cart";
+import { getCaptcha } from "@/api/auth";
 
-const route = useRoute()
-const router = useRouter()
-const userStore = useUserStore()
-const cartStore = useCartStore()
+const route = useRoute();
+const router = useRouter();
+const userStore = useUserStore();
+const cartStore = useCartStore();
 
-const formRef = ref()
-const loading = ref(false)
+const formRef = ref();
+const loading = ref(false);
+const captchaImage = ref("");
 
 const form = reactive({
-  account: '',
-  password: '',
-})
+  account: "",
+  password: "",
+  captchaId: "",
+  captchaCode: "",
+});
 
 const rules = {
-  account: [{ required: true, message: '请输入账号', trigger: 'blur' }],
-  password: [{ required: true, message: '请输入密码', trigger: 'blur' }],
+  account: [{ required: true, message: "请输入账号", trigger: "blur" }],
+  password: [{ required: true, message: "请输入密码", trigger: "blur" }],
+  captchaCode: [{ required: true, message: "请输入验证码", trigger: "blur" }],
+};
+
+async function refreshCaptcha() {
+  try {
+    const data = await getCaptcha();
+    captchaImage.value = data.image;
+    form.captchaId = data.captchaId;
+    form.captchaCode = "";
+  } catch {
+    // 获取失败保持旧图，用户可再次点击重试
+  }
 }
 
 async function submit() {
-  await formRef.value?.validate()
-  loading.value = true
+  await formRef.value?.validate();
+  loading.value = true;
   try {
-    await userStore.login({ ...form, loginType: 'member' })
-    cartStore.refresh()
-    ElMessage.success('登录成功，欢迎回来～')
-    router.push((route.query.redirect as string) || '/')
+    await userStore.login({ ...form, loginType: "member" });
+    cartStore.refresh();
+    ElMessage.success("登录成功，欢迎回来～");
+    router.push((route.query.redirect as string) || "/");
+  } catch {
+    // 登录失败时验证码已被服务端作废，刷新一张新码供重试
+    refreshCaptcha();
   } finally {
-    loading.value = false
+    loading.value = false;
   }
 }
+
+onMounted(refreshCaptcha);
 </script>
 
 <style scoped>
@@ -98,8 +145,16 @@ async function submit() {
   align-items: center;
   justify-content: center;
   background:
-    radial-gradient(circle at 15% 20%, rgba(249, 115, 22, 0.12), transparent 40%),
-    radial-gradient(circle at 85% 80%, rgba(16, 185, 129, 0.1), transparent 40%),
+    radial-gradient(
+      circle at 15% 20%,
+      rgba(37, 99, 235, 0.12),
+      transparent 40%
+    ),
+    radial-gradient(
+      circle at 85% 80%,
+      rgba(129, 140, 248, 0.1),
+      transparent 40%
+    ),
     var(--bg);
   padding: 24px;
 }
@@ -141,7 +196,7 @@ async function submit() {
   margin-top: 24px;
   width: 96px;
   height: 96px;
-  border-radius: 28px;
+  border-radius: 12px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -150,7 +205,8 @@ async function submit() {
 }
 
 @keyframes float {
-  0%, 100% {
+  0%,
+  100% {
     transform: translateY(0);
   }
   50% {
@@ -169,6 +225,27 @@ async function submit() {
   margin-bottom: 28px;
   font-size: 22px;
   color: var(--text-main);
+}
+
+.captcha-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+}
+
+.captcha-row .el-input {
+  flex: 1;
+}
+
+.captcha-img {
+  flex: 0 0 120px;
+  height: 40px;
+  border-radius: 6px;
+  border: 1px solid #dcdfe6;
+  cursor: pointer;
+  object-fit: cover;
+  background: #f5f7fa;
 }
 
 .submit-btn {

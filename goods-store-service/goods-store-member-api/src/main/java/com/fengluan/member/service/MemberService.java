@@ -18,4 +18,7 @@ public interface MemberService {
 
     /** 编辑会员资料 */
     MemberVO updateProfile(Long id, MemberProfileUpdateRequest request);
+
+    /** 启用/禁用会员（管理端） */
+    MemberVO setEnabled(Long id, Boolean enabled);
 }

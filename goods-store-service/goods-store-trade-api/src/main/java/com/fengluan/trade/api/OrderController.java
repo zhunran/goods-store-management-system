@@ -2,6 +2,7 @@ package com.fengluan.trade.api;
 
 import com.fengluan.spi.trade.OrderApi;
 import com.fengluan.spi.trade.dto.OrderCreateRequest;
+import com.fengluan.spi.trade.dto.OrderPayRequest;
 import com.fengluan.spi.trade.dto.OrderQueryRequest;
 import com.fengluan.spi.trade.dto.PageVO;
 import com.fengluan.spi.trade.vo.OrderCreateResponse;
@@ -54,6 +55,18 @@ public class OrderController implements OrderApi {
     }
 
     @Override
+    public Void pay(@PathVariable Long id, @Valid @RequestBody OrderPayRequest request) {
+        orderService.pay(CurrentUserUtil.currentUserId(), id, request.getPayType());
+        return null;
+    }
+
+    @Override
+    public Void refund(@PathVariable Long id) {
+        orderService.refund(CurrentUserUtil.currentUserId(), id);
+        return null;
+    }
+
+    @Override
     public PageVO<OrderVO> adminPage(OrderQueryRequest query) {
         return orderService.adminPage(query);
     }
@@ -66,6 +79,12 @@ public class OrderController implements OrderApi {
     @Override
     public Void ship(@PathVariable Long id) {
         orderService.ship(id);
+        return null;
+    }
+
+    @Override
+    public Void adminRefund(@PathVariable Long id) {
+        orderService.adminRefund(id);
         return null;
     }
 }

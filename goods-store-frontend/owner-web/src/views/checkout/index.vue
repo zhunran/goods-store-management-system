@@ -6,7 +6,11 @@
       <!-- 购物车为空 -->
       <div v-if="!items.length" class="empty-wrap card">
         <el-empty description="购物车里还没有商品，先去逛逛吧～">
-          <el-button type="primary" class="btn-primary" @click="$router.push('/product')">
+          <el-button
+            type="primary"
+            class="btn-primary"
+            @click="$router.push('/product')"
+          >
             去逛逛
           </el-button>
         </el-empty>
@@ -17,7 +21,12 @@
         <div class="section card">
           <div class="section-head">
             <span class="section-title">收货地址</span>
-            <el-button link type="primary" size="small" @click="$router.push('/user')">
+            <el-button
+              link
+              type="primary"
+              size="small"
+              @click="$router.push('/user')"
+            >
               管理地址 <el-icon><ArrowRight /></el-icon>
             </el-button>
           </div>
@@ -33,19 +42,31 @@
               <div class="addr-top">
                 <span class="addr-name">{{ a.receiver }}</span>
                 <span class="addr-phone">{{ a.phone }}</span>
-                <el-tag v-if="a.isDefault" size="small" class="default-tag" effect="light" round>
+                <el-tag
+                  v-if="a.isDefault"
+                  size="small"
+                  class="default-tag"
+                  effect="light"
+                >
                   默认
                 </el-tag>
               </div>
               <p class="addr-detail">{{ a.addrDetail }}</p>
-              <span v-if="selectedAddrId === a.id && !a.isDefault" class="switching-tip">
+              <span
+                v-if="selectedAddrId === a.id && !a.isDefault"
+                class="switching-tip"
+              >
                 已切换，下单将使用此地址
               </span>
             </div>
           </div>
           <div v-else class="no-addr">
             <p>还没有收货地址，先去个人中心添加一个吧～</p>
-            <el-button type="primary" class="btn-primary" @click="$router.push('/user')">
+            <el-button
+              type="primary"
+              class="btn-primary"
+              @click="$router.push('/user')"
+            >
               去添加地址
             </el-button>
           </div>
@@ -60,13 +81,17 @@
           <div v-for="item in items" :key="item.cartId" class="good-row">
             <el-image :src="item.goodPic" fit="cover" class="good-pic">
               <template #error>
-                <div class="img-fallback"><el-icon :size="20"><Picture /></el-icon></div>
+                <div class="img-fallback">
+                  <el-icon :size="20"><Picture /></el-icon>
+                </div>
               </template>
             </el-image>
             <p class="good-name">{{ item.goodName }}</p>
             <span class="good-price">¥{{ item.price }}</span>
             <span class="good-qty">× {{ item.qty }}</span>
-            <span class="good-subtotal price">¥{{ (item.price * item.qty).toFixed(2) }}</span>
+            <span class="good-subtotal price"
+              >¥{{ (item.price * item.qty).toFixed(2) }}</span
+            >
           </div>
         </div>
 
@@ -114,8 +139,15 @@
         <div class="skeleton-line" style="width: 60%; margin-top: 10px"></div>
       </div>
       <div class="section card">
-        <div v-for="i in 2" :key="i" style="display: flex; gap: 14px; align-items: center; padding: 10px 0">
-          <div class="skeleton-line" style="width: 64px; height: 64px; border-radius: 8px"></div>
+        <div
+          v-for="i in 2"
+          :key="i"
+          style="display: flex; gap: 14px; align-items: center; padding: 10px 0"
+        >
+          <div
+            class="skeleton-line"
+            style="width: 64px; height: 64px; border-radius: 8px"
+          ></div>
           <div class="skeleton-line" style="flex: 1"></div>
         </div>
       </div>
@@ -124,75 +156,82 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, ref } from 'vue'
-import { useRouter } from 'vue-router'
-import { ElMessage } from 'element-plus'
-import { cartList } from '@/api/cart'
-import { submitOrder } from '@/api/order'
-import { getProfile, setDefaultAddress } from '@/api/member'
-import type { MemberAddressVO } from '@/api/types'
-import { useCartStore } from '@/stores/cart'
+import { computed, onMounted, ref } from "vue";
+import { useRouter } from "vue-router";
+import { ElMessage } from "element-plus";
+import { cartList } from "@/api/cart";
+import { submitOrder } from "@/api/order";
+import { getProfile, setDefaultAddress } from "@/api/member";
+import type { MemberAddressVO } from "@/api/types";
+import { useCartStore } from "@/stores/cart";
 
-const router = useRouter()
-const cartStore = useCartStore()
+const router = useRouter();
+const cartStore = useCartStore();
 
-const loading = ref(true)
-const submitting = ref(false)
-const items = ref<Awaited<ReturnType<typeof cartList>>>([])
-const addresses = ref<MemberAddressVO[]>([])
-const selectedAddrId = ref<string>('')
-const comment = ref('')
+const loading = ref(true);
+const submitting = ref(false);
+const items = ref<Awaited<ReturnType<typeof cartList>>>([]);
+const addresses = ref<MemberAddressVO[]>([]);
+const selectedAddrId = ref<string>("");
+const comment = ref("");
 
-const totalCount = computed(() => items.value.reduce((s, i) => s + i.qty, 0))
+const totalCount = computed(() => items.value.reduce((s, i) => s + i.qty, 0));
 const totalAmount = computed(() =>
   items.value.reduce((s, i) => s + i.price * i.qty, 0),
-)
+);
 
 /**
  * 后端下单固定使用默认地址（忽略请求中的 addressId），
  * 因此选择地址时若非默认则同步切换默认地址，保证所见即所得。
  */
 async function selectAddr(addr: MemberAddressVO) {
-  if (selectedAddrId.value === addr.id) return
+  if (selectedAddrId.value === addr.id) return;
   if (addr.isDefault) {
-    selectedAddrId.value = addr.id
-    return
+    selectedAddrId.value = addr.id;
+    return;
   }
   try {
-    await setDefaultAddress(addr.id)
-    addresses.value = addresses.value.map((a) => ({ ...a, isDefault: a.id === addr.id }))
-    selectedAddrId.value = addr.id
-    ElMessage.success(`已切换默认地址为「${addr.receiver}」`)
+    await setDefaultAddress(addr.id);
+    addresses.value = addresses.value.map((a) => ({
+      ...a,
+      isDefault: a.id === addr.id,
+    }));
+    selectedAddrId.value = addr.id;
+    ElMessage.success(`已切换默认地址为「${addr.receiver}」`);
   } catch {
     // 切换失败保持原默认
   }
 }
 
 async function doSubmit() {
-  if (submitting.value) return
-  submitting.value = true
+  if (submitting.value) return;
+  submitting.value = true;
   try {
-    const defaultAddr = addresses.value.find((a) => a.isDefault)
-    const res = await submitOrder(defaultAddr?.id, comment.value.trim() || undefined)
-    cartStore.refresh()
-    ElMessage.success(`下单成功，订单号 ${res.orderNo}`)
-    router.push('/order')
+    const defaultAddr = addresses.value.find((a) => a.isDefault);
+    const res = await submitOrder(
+      defaultAddr?.id,
+      comment.value.trim() || undefined,
+    );
+    cartStore.refresh();
+    ElMessage.success(`下单成功，订单号 ${res.orderNo}`);
+    router.push(`/cashier/${res.id}`);
   } finally {
-    submitting.value = false
+    submitting.value = false;
   }
 }
 
 onMounted(async () => {
   try {
-    const [cartRes, profileRes] = await Promise.all([cartList(), getProfile()])
-    items.value = cartRes
-    addresses.value = profileRes.addresses
-    const def = addresses.value.find((a) => a.isDefault)
-    selectedAddrId.value = def?.id ?? ''
+    const [cartRes, profileRes] = await Promise.all([cartList(), getProfile()]);
+    // 结算页只读购物车中勾选的商品，与后端按 selected 过滤下单保持一致
+    items.value = cartRes.filter((i) => i.selected);
+    addresses.value = profileRes.addresses;
+    const def = addresses.value.find((a) => a.isDefault);
+    selectedAddrId.value = def?.id ?? "";
   } finally {
-    loading.value = false
+    loading.value = false;
   }
-})
+});
 </script>
 
 <style scoped>
@@ -210,14 +249,14 @@ onMounted(async () => {
 }
 
 .page-title::before {
-  content: '';
+  content: "";
   position: absolute;
   left: 0;
   top: 50%;
   transform: translateY(-50%);
-  width: 5px;
+  width: 4px;
   height: 18px;
-  border-radius: 3px;
+  border-radius: 0;
   background: var(--primary-gradient);
 }
 
@@ -322,7 +361,7 @@ onMounted(async () => {
   align-items: center;
   gap: 16px;
   padding: 12px 0;
-  border-bottom: 1px dashed #f0ede9;
+  border-bottom: 1px dashed #e5eaf2;
 }
 
 .good-row:last-child {
@@ -334,7 +373,7 @@ onMounted(async () => {
   height: 64px;
   border-radius: 8px;
   flex-shrink: 0;
-  background: #f5f2ee;
+  background: #eef2f7;
 }
 
 .good-name {
@@ -379,7 +418,7 @@ onMounted(async () => {
   justify-content: space-between;
   padding: 14px 24px;
   border-radius: var(--radius-lg);
-  box-shadow: 0 8px 30px rgba(61, 58, 56, 0.12);
+  box-shadow: 0 8px 30px rgba(15, 23, 42, 0.12);
   z-index: 10;
 }
 
@@ -401,7 +440,7 @@ onMounted(async () => {
 
 .submit-btn {
   padding: 0 42px;
-  border-radius: 999px;
+  border-radius: var(--radius-sm);
 }
 
 .empty-wrap {

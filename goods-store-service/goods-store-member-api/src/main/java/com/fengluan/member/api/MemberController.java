@@ -52,6 +52,12 @@ public class MemberController implements MemberApi {
     }
 
     @Override
+    public MemberVO setEnabled(Long id, Boolean enabled) {
+        // 管理端操作，无本站越权约束
+        return memberService.setEnabled(id, enabled);
+    }
+
+    @Override
     public List<MemberAddressVO> listAddress(Long id) {
         CurrentUserUtil.assertOwned(id);
         return addressService.listAddress(id);

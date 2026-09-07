@@ -1,9 +1,9 @@
 server:
   port: 8083
 
-# JWT 签名密钥：必须与网关（jwt.secret）保持一致
+# JWT 签名密钥：必须与网关（jwt.secret）保持一致，通过环境变量 JWT_SECRET 注入（禁止在仓库提交明文）
 jwt:
-  secret: change-me-this-is-a-very-long-32byte-secret-key!!
+  secret: ${JWT_SECRET:change-me-this-is-a-very-long-32byte-secret-key!!}
 
 spring:
   application:

@@ -20,3 +20,13 @@ export function cancelOrder(id: string | number) {
 export function confirmOrder(id: string | number) {
   return put<void>(`/order/${id}/confirm`)
 }
+
+/** 模拟支付：payType 为 ALIPAY | WECHAT */
+export function payOrder(id: string | number, payType: string) {
+  return put<void>(`/order/${id}/pay`, { payType })
+}
+
+/** 申请退款（仅已支付且未发货的订单，模拟退款即时到账） */
+export function refundOrder(id: string | number) {
+  return put<void>(`/order/${id}/refund`)
+}

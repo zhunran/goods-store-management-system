@@ -13,8 +13,15 @@
         <div class="skeleton-line" style="width: 60%; margin-top: 14px"></div>
       </div>
       <div class="section card">
-        <div v-for="i in 2" :key="i" style="display: flex; gap: 14px; align-items: center; padding: 10px 0">
-          <div class="skeleton-line" style="width: 64px; height: 64px; border-radius: 8px"></div>
+        <div
+          v-for="i in 2"
+          :key="i"
+          style="display: flex; gap: 14px; align-items: center; padding: 10px 0"
+        >
+          <div
+            class="skeleton-line"
+            style="width: 64px; height: 64px; border-radius: 8px"
+          ></div>
           <div class="skeleton-line" style="flex: 1"></div>
         </div>
       </div>
@@ -25,7 +32,9 @@
       <div class="section card status-card">
         <div class="status-main">
           <div class="status-text">
-            <h2 class="status-name">{{ ORDER_STATUS_TEXT[order.status] || order.status }}</h2>
+            <h2 class="status-name">
+              {{ ORDER_STATUS_TEXT[order.status] || order.status }}
+            </h2>
             <p class="status-desc">{{ statusDesc }}</p>
           </div>
           <div class="status-amount">
@@ -33,7 +42,20 @@
             <span class="price amount">¥{{ order.totalPay }}</span>
           </div>
           <div class="status-btns">
-            <el-button v-if="order.status === '10'" @click="onCancel">取消订单</el-button>
+            <el-button v-if="order.status === '10'" @click="onCancel"
+              >取消订单</el-button
+            >
+            <el-button
+              v-if="order.status === '10'"
+              type="primary"
+              class="btn-primary"
+              @click="goPay"
+            >
+              去支付
+            </el-button>
+            <el-button v-if="order.status === '20'" @click="onRefund"
+              >申请退款</el-button
+            >
             <el-button
               v-if="order.status === '30'"
               class="btn-confirm"
@@ -46,7 +68,7 @@
 
         <!-- 进度 -->
         <el-steps
-          v-if="order.status !== '50'"
+          v-if="order.status !== '50' && order.status !== '60'"
           :active="stepActive"
           align-center
           class="status-steps"
@@ -56,9 +78,14 @@
           <el-step title="商品发货" :description="order.shipTime || '—'" />
           <el-step title="确认收货" :description="order.checkoutTime || '—'" />
         </el-steps>
-        <div v-else class="cancelled-tip">
+        <div v-else-if="order.status === '50'" class="cancelled-tip">
           <el-icon><CircleClose /></el-icon>
           订单已于 {{ order.updatedTime || order.createdTime }} 取消
+        </div>
+        <div v-else class="refunded-tip">
+          <el-icon><RefreshLeft /></el-icon>
+          订单已于
+          {{ order.updatedTime || order.createdTime }} 退款，款项已原路退回
         </div>
       </div>
 
@@ -70,19 +97,19 @@
         <div class="addr-grid">
           <div class="addr-item">
             <span class="addr-label">收货人</span>
-            <span>{{ order.receiverName || '—' }}</span>
+            <span>{{ order.receiverName || "—" }}</span>
           </div>
           <div class="addr-item">
             <span class="addr-label">联系电话</span>
-            <span>{{ order.receiverPhone || '—' }}</span>
+            <span>{{ order.receiverPhone || "—" }}</span>
           </div>
           <div class="addr-item">
             <span class="addr-label">收货地址</span>
-            <span>{{ order.receiverAddrDetail || '—' }}</span>
+            <span>{{ order.receiverAddrDetail || "—" }}</span>
           </div>
           <div class="addr-item">
             <span class="addr-label">买家账号</span>
-            <span>{{ order.memberAccount || '—' }}</span>
+            <span>{{ order.memberAccount || "—" }}</span>
           </div>
         </div>
       </div>
@@ -101,7 +128,9 @@
             @click="$router.push(`/product/${item.goodId}`)"
           >
             <template #error>
-              <div class="img-fallback"><el-icon :size="20"><Picture /></el-icon></div>
+              <div class="img-fallback">
+                <el-icon :size="20"><Picture /></el-icon>
+              </div>
             </template>
           </el-image>
           <p class="good-name" @click="$router.push(`/product/${item.goodId}`)">
@@ -109,7 +138,9 @@
           </p>
           <span class="good-price">¥{{ item.dealPrice }}</span>
           <span class="good-qty">× {{ item.count }}</span>
-          <span class="good-subtotal price">¥{{ (item.dealPrice * item.count).toFixed(2) }}</span>
+          <span class="good-subtotal price"
+            >¥{{ (item.dealPrice * item.count).toFixed(2) }}</span
+          >
         </div>
       </div>
 
@@ -125,19 +156,19 @@
           </div>
           <div class="info-item">
             <span class="info-label">创建时间</span>
-            <span>{{ order.createdTime || '—' }}</span>
+            <span>{{ order.createdTime || "—" }}</span>
           </div>
           <div class="info-item">
             <span class="info-label">支付时间</span>
-            <span>{{ order.payTime || '—' }}</span>
+            <span>{{ order.payTime || "—" }}</span>
           </div>
           <div class="info-item">
             <span class="info-label">发货时间</span>
-            <span>{{ order.shipTime || '—' }}</span>
+            <span>{{ order.shipTime || "—" }}</span>
           </div>
           <div class="info-item">
             <span class="info-label">完成时间</span>
-            <span>{{ order.checkoutTime || '—' }}</span>
+            <span>{{ order.checkoutTime || "—" }}</span>
           </div>
           <div class="info-item" v-if="order.orderComment">
             <span class="info-label">订单备注</span>
@@ -148,7 +179,11 @@
     </template>
 
     <el-empty v-else description="订单不存在或已被删除">
-      <el-button type="primary" class="btn-primary" @click="$router.push('/order')">
+      <el-button
+        type="primary"
+        class="btn-primary"
+        @click="$router.push('/order')"
+      >
         返回订单列表
       </el-button>
     </el-empty>
@@ -156,97 +191,129 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, ref, watch } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
-import { ElMessage, ElMessageBox } from 'element-plus'
-import { cancelOrder, confirmOrder, orderDetail } from '@/api/order'
-import { ORDER_STATUS_TEXT, type OrderDetailVO } from '@/api/types'
+import { computed, onMounted, ref, watch } from "vue";
+import { useRoute, useRouter } from "vue-router";
+import { ElMessage, ElMessageBox } from "element-plus";
+import {
+  cancelOrder,
+  confirmOrder,
+  orderDetail,
+  refundOrder,
+} from "@/api/order";
+import { ORDER_STATUS_TEXT, type OrderDetailVO } from "@/api/types";
 
-const route = useRoute()
-const router = useRouter()
+const route = useRoute();
+const router = useRouter();
 
-const loading = ref(true)
-const order = ref<OrderDetailVO | null>(null)
+const loading = ref(true);
+const order = ref<OrderDetailVO | null>(null);
 
-const itemCount = computed(() =>
-  order.value?.items.reduce((s, i) => s + i.count, 0) ?? 0,
-)
+const itemCount = computed(
+  () => order.value?.items.reduce((s, i) => s + i.count, 0) ?? 0,
+);
 
 const statusDesc = computed(() => {
   switch (order.value?.status) {
-    case '10':
-      return '订单已提交，正在等待付款'
-    case '20':
-      return '商家正在加紧备货中'
-    case '30':
-      return '包裹正在飞奔向您而来，记得确认收货哦'
-    case '40':
-      return '交易完成，感谢您的信任与支持'
-    case '50':
-      return '订单已取消，期待下次相遇'
+    case "10":
+      return "订单已提交，正在等待付款";
+    case "20":
+      return "商家正在加紧备货中";
+    case "30":
+      return "包裹正在飞奔向您而来，记得确认收货哦";
+    case "40":
+      return "交易完成，感谢您的信任与支持";
+    case "50":
+      return "订单已取消，期待下次相遇";
+    case "60":
+      return "订单已退款，款项已原路退回";
     default:
-      return ''
+      return "";
   }
-})
+});
 
 const stepActive = computed(() => {
   switch (order.value?.status) {
-    case '10':
-      return 1
-    case '20':
-      return 2
-    case '30':
-      return 3
-    case '40':
-      return 4
+    case "10":
+      return 1;
+    case "20":
+      return 2;
+    case "30":
+      return 3;
+    case "40":
+      return 4;
     default:
-      return 0
+      return 0;
   }
-})
+});
 
 async function loadDetail(id: string) {
-  loading.value = true
+  loading.value = true;
   try {
-    order.value = await orderDetail(id)
+    order.value = await orderDetail(id);
   } catch {
-    order.value = null
+    order.value = null;
   } finally {
-    loading.value = false
+    loading.value = false;
   }
 }
 
 async function onCancel() {
-  if (!order.value) return
-  await ElMessageBox.confirm(`确定取消订单 ${order.value.orderNo} 吗？`, '取消订单', {
-    confirmButtonText: '确定取消',
-    cancelButtonText: '再想想',
-    type: 'warning',
-  })
-  await cancelOrder(order.value.id)
-  ElMessage.success('订单已取消')
-  loadDetail(order.value.id)
+  if (!order.value) return;
+  await ElMessageBox.confirm(
+    `确定取消订单 ${order.value.orderNo} 吗？`,
+    "取消订单",
+    {
+      confirmButtonText: "确定取消",
+      cancelButtonText: "再想想",
+      type: "warning",
+    },
+  );
+  await cancelOrder(order.value.id);
+  ElMessage.success("订单已取消");
+  loadDetail(order.value.id);
 }
 
 async function onConfirm() {
-  if (!order.value) return
-  await ElMessageBox.confirm('确认已收到包裹了吗？', '确认收货', {
-    confirmButtonText: '确认收货',
-    cancelButtonText: '再等等',
-    type: 'info',
-  })
-  await confirmOrder(order.value.id)
-  ElMessage.success('确认收货成功，订单已完成')
-  loadDetail(order.value.id)
+  if (!order.value) return;
+  await ElMessageBox.confirm("确认已收到包裹了吗？", "确认收货", {
+    confirmButtonText: "确认收货",
+    cancelButtonText: "再等等",
+    type: "info",
+  });
+  await confirmOrder(order.value.id);
+  ElMessage.success("确认收货成功，订单已完成");
+  loadDetail(order.value.id);
 }
 
-onMounted(() => loadDetail(route.params.id as string))
+function goPay() {
+  if (!order.value) return;
+  router.push(`/cashier/${order.value.id}`);
+}
+
+async function onRefund() {
+  if (!order.value) return;
+  await ElMessageBox.confirm(
+    "确认申请退款吗？模拟退款将即时到账，且不可恢复。",
+    "申请退款",
+    {
+      confirmButtonText: "确认退款",
+      cancelButtonText: "再想想",
+      type: "warning",
+    },
+  );
+  await refundOrder(order.value.id);
+  ElMessage.success("退款成功，款项已原路退回");
+  loadDetail(order.value.id);
+}
+
+onMounted(() => loadDetail(route.params.id as string));
 
 watch(
   () => route.params.id,
   (id) => {
-    if (id && route.name === 'orderDetail') loadDetail(id as string)
+    if (id && route.name === "orderDetail") loadDetail(id as string);
   },
-)
+);
 </script>
 
 <style scoped>
@@ -279,7 +346,7 @@ watch(
 }
 
 .section-title::before {
-  content: '';
+  content: "";
   position: absolute;
   left: 0;
   top: 50%;
@@ -340,19 +407,20 @@ watch(
 }
 
 .btn-confirm {
-  color: var(--accent-green);
-  border-color: var(--accent-green);
+  color: var(--accent-hot);
+  border-color: var(--accent-hot);
 }
 
 .btn-confirm:hover {
-  background: var(--accent-green-light);
+  background: var(--accent-hot-light);
 }
 
 .status-steps {
   margin-top: 28px;
 }
 
-.cancelled-tip {
+.cancelled-tip,
+.refunded-tip {
   margin-top: 22px;
   display: flex;
   align-items: center;
@@ -395,7 +463,7 @@ watch(
   align-items: center;
   gap: 16px;
   padding: 12px 0;
-  border-bottom: 1px dashed #f0ede9;
+  border-bottom: 1px dashed #e5eaf2;
 }
 
 .good-row:last-child {
@@ -407,7 +475,7 @@ watch(
   height: 64px;
   border-radius: 8px;
   flex-shrink: 0;
-  background: #f5f2ee;
+  background: #eef2f7;
   cursor: pointer;
 }
 

@@ -81,7 +81,7 @@ public class SeckillOrderServiceImpl implements SeckillOrderService {
                 .seckillGoodId(seckillGoodId)
                 .goodId(sg.getGoodId().longValue())
                 .memberId(memberId)
-                .seckillPrice(0L)
+                .seckillPrice(java.math.BigDecimal.ZERO)
                 .orderNo(orderNo)
                 .build();
         seckillMessageProducer.sendSeckillOrder(msg);

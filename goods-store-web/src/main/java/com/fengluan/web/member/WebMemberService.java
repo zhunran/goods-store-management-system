@@ -39,6 +39,10 @@ public class WebMemberService {
         return memberFeignClient.updateProfile(memberId, request);
     }
 
+    public MemberVO setEnabled(Long memberId, Boolean enabled) {
+        return memberFeignClient.setEnabled(memberId, enabled);
+    }
+
     public List<MemberAddressVO> listAddress(Long memberId) {
         return memberFeignClient.listAddress(memberId);
     }

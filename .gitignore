@@ -37,6 +37,9 @@ logs/
 *.log
 log.md.bak
 
+### 项目计划与内部文档（不入库） ###
+doc/
+
 ### 第三方中间件二进制（体积大，不入库，自行下载部署） ###
 sentinel/
 skywalking/

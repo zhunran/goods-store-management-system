@@ -281,6 +281,9 @@ CREATE TABLE `seckill_good` (
   `id` int UNSIGNED NOT NULL AUTO_INCREMENT COMMENT '主键',
   `seckill_id` int NOT NULL COMMENT '秒杀活动编号',
   `good_id` int NOT NULL COMMENT '商品编号',
+  `seckill_price` decimal(10, 2) NOT NULL DEFAULT 0 COMMENT '秒杀价',
+  `stock_count` int NOT NULL DEFAULT 0 COMMENT '限量库存',
+  `stock_sold` int NOT NULL DEFAULT 0 COMMENT '已售（DB 账本）',
   `description` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL COMMENT '备注',
   PRIMARY KEY (`id`) USING BTREE,
   UNIQUE INDEX `uq_seckill_good`(`seckill_id` ASC, `good_id` ASC) USING BTREE

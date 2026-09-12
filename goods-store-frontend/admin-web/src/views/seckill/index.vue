@@ -152,6 +152,9 @@
           show-overflow-tooltip
         />
         <el-table-column prop="originalPrice" label="原价" width="90" />
+        <el-table-column prop="seckillPrice" label="秒杀价" width="90" />
+        <el-table-column prop="stockCount" label="限量" width="70" />
+        <el-table-column prop="stockSold" label="已售" width="70" />
         <el-table-column label="操作" width="100">
           <template #default="{ row }">
             <el-button size="small" type="danger" @click="removeGood(row)"
@@ -178,6 +181,24 @@
               :value="g.value"
             />
           </el-select>
+        </el-form-item>
+        <el-form-item label="秒杀价" required>
+          <el-input-number
+            v-model="selectedGoodPrice"
+            :min="0.01"
+            :precision="2"
+            :step="1"
+            style="width: 100%"
+          />
+        </el-form-item>
+        <el-form-item label="限量库存" required>
+          <el-input-number
+            v-model="selectedGoodCount"
+            :min="1"
+            :precision="0"
+            :step="1"
+            style="width: 100%"
+          />
         </el-form-item>
         <el-form-item label="描述">
           <el-input v-model="selectedGoodDesc" />
@@ -220,6 +241,8 @@ const currentActivity = ref<SeckillVO | null>(null);
 const goodsDialogVisible = ref(false);
 const selectedGoodId = ref<number | null>(null);
 const selectedGoodDesc = ref("");
+const selectedGoodPrice = ref<number>(0.01);
+const selectedGoodCount = ref<number>(1);
 const addingGood = ref(false);
 const goodOptions = ref<{ label: string; value: number }[]>([]);
 
@@ -334,16 +357,28 @@ async function addGood() {
     ElMessage.warning("请选择商品");
     return;
   }
+  if (!selectedGoodPrice.value || selectedGoodPrice.value <= 0) {
+    ElMessage.warning("请输入秒杀价");
+    return;
+  }
+  if (!selectedGoodCount.value || selectedGoodCount.value < 1) {
+    ElMessage.warning("请输入限量库存");
+    return;
+  }
   addingGood.value = true;
   try {
     await post(`/seckill/admin/activity/${currentActivity.value.id}/goods`, {
       goodId: selectedGoodId.value,
+      seckillPrice: selectedGoodPrice.value,
+      stockCount: selectedGoodCount.value,
       description: selectedGoodDesc.value,
     });
     ElMessage.success("添加成功");
     goodsDialogVisible.value = false;
     selectedGoodId.value = null;
     selectedGoodDesc.value = "";
+    selectedGoodPrice.value = 0.01;
+    selectedGoodCount.value = 1;
     openGoods(currentActivity.value);
   } finally {
     addingGood.value = false;

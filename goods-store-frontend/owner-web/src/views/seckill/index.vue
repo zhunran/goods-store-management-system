@@ -69,14 +69,35 @@
               <div class="info">
                 <p class="name" :title="s.goodName">{{ s.goodName }}</p>
                 <div class="price-row">
-                  <span class="price">¥{{ s.originalPrice }}</span>
-                  <span
-                    v-if="s.stockLeft != null && Number(s.stockLeft) > 0"
-                    class="stock-left"
-                    :class="{ low: Number(s.stockLeft) <= 5 }"
+                  <span class="price"
+                    >¥{{ s.seckillPrice ?? s.originalPrice }}</span
                   >
-                    仅剩 {{ s.stockLeft }} 件
-                  </span>
+                  <span
+                    v-if="
+                      s.seckillPrice != null && s.seckillPrice < s.originalPrice
+                    "
+                    class="origin"
+                    >¥{{ s.originalPrice }}</span
+                  >
+                </div>
+                <div
+                  v-if="s.stockCount && s.stockLeft != null"
+                  class="progress-row"
+                >
+                  <div class="progress-track">
+                    <div
+                      class="progress-bar"
+                      :style="{ width: robProgress(s) + '%' }"
+                    ></div>
+                  </div>
+                  <span class="progress-text">已抢{{ robProgress(s) }}%</span>
+                </div>
+                <div
+                  v-if="s.stockLeft != null && Number(s.stockLeft) > 0"
+                  class="stock-left"
+                  :class="{ low: Number(s.stockLeft) <= 5 }"
+                >
+                  仅剩 {{ s.stockLeft }} 件
                 </div>
                 <CountDown :seconds="s.countdownSec" @finish="loadList" />
                 <el-button
@@ -133,7 +154,16 @@
               <div class="info">
                 <p class="name" :title="s.goodName">{{ s.goodName }}</p>
                 <div class="price-row">
-                  <span class="price">¥{{ s.originalPrice }}</span>
+                  <span class="price"
+                    >¥{{ s.seckillPrice ?? s.originalPrice }}</span
+                  >
+                  <span
+                    v-if="
+                      s.seckillPrice != null && s.seckillPrice < s.originalPrice
+                    "
+                    class="origin"
+                    >¥{{ s.originalPrice }}</span
+                  >
                 </div>
                 <CountDown :seconds="s.countdownSec" @finish="loadList" />
                 <el-button class="btn-wait" disabled>未开始</el-button>
@@ -293,6 +323,13 @@ function goGood(s: SeckillGoodVO) {
 /** 已售空：Redis 库存已预热且为 0（未预热 null 不算售空） */
 function isSoldOut(s: SeckillGoodVO) {
   return s.stockLeft != null && Number(s.stockLeft) <= 0;
+}
+
+/** 抢购进度：已抢占限量的百分比（DB/Redis 任一缺失则不展示） */
+function robProgress(s: SeckillGoodVO): number {
+  if (!s.stockCount || s.stockLeft == null) return 0;
+  const sold = s.stockCount - Number(s.stockLeft);
+  return Math.min(100, Math.max(0, Math.round((sold / s.stockCount) * 100)));
 }
 
 async function rob(s: SeckillGoodVO) {
@@ -556,6 +593,42 @@ onMounted(loadList);
 .stock-left.low {
   color: #ef4444;
   font-weight: 600;
+}
+
+.origin {
+  margin-left: 6px;
+  font-size: 13px;
+  color: var(--text-light);
+  text-decoration: line-through;
+}
+
+.progress-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 6px 0 2px;
+}
+
+.progress-track {
+  flex: 1;
+  height: 6px;
+  border-radius: 3px;
+  background: #fee2e2;
+  overflow: hidden;
+}
+
+.progress-bar {
+  height: 100%;
+  border-radius: 3px;
+  background: linear-gradient(90deg, #ef4444, #dc2626);
+  transition: width 0.4s ease;
+}
+
+.progress-text {
+  font-size: 12px;
+  color: #dc2626;
+  font-weight: 600;
+  white-space: nowrap;
 }
 
 .btn-seckill {

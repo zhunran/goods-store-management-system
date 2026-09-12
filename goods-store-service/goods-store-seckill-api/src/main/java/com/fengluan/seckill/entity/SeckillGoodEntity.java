@@ -5,6 +5,8 @@ import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import lombok.Data;
 
+import java.math.BigDecimal;
+
 @Data
 @TableName("seckill_good")
 public class SeckillGoodEntity {
@@ -16,4 +18,10 @@ public class SeckillGoodEntity {
     private Integer goodId;
     /** 备注 */
     private String description;
+    /** 秒杀价 */
+    private BigDecimal seckillPrice;
+    /** 限量库存 */
+    private Integer stockCount;
+    /** 已售（DB 账本） */
+    private Integer stockSold;
 }

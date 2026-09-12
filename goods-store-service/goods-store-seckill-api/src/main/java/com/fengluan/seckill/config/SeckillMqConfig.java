@@ -40,7 +40,7 @@ public class SeckillMqConfig {
     @Bean
     public Queue seckillOrderTimeoutQueue() {
         return QueueBuilder.durable(SECKILL_ORDER_TIMEOUT_QUEUE)
-                .ttl(30 * 60 * 1000)  // 30分钟
+                .ttl(30 * 1000)  // 临时：30秒（回归测试用，测完改回 30 分钟并删队列重建）
                 .deadLetterExchange(ORDER_EXCHANGE)
                 .deadLetterRoutingKey(SECKILL_ORDER_CANCEL_KEY)
                 .build();

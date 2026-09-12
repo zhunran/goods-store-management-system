@@ -35,6 +35,8 @@ public class SeckillGoodServiceImpl implements SeckillGoodService {
         SeckillGoodEntity e = new SeckillGoodEntity();
         e.setSeckillId(seckillId.intValue());
         e.setGoodId(request.getGoodId().intValue());
+        e.setSeckillPrice(request.getSeckillPrice());
+        e.setStockCount(request.getStockCount());
         e.setDescription(request.getDescription());
         try {
             seckillGoodMapper.insert(e); // 唯一约束 uq_seckill_good 冲突抛 DuplicateKeyException
@@ -103,6 +105,9 @@ public class SeckillGoodServiceImpl implements SeckillGoodService {
         SeckillGoodVO v = new SeckillGoodVO();
         v.setId(e.getId());
         v.setGoodId(e.getGoodId().longValue());
+        v.setSeckillPrice(e.getSeckillPrice());
+        v.setStockCount(e.getStockCount());
+        v.setStockSold(e.getStockSold());
         v.setDescription(e.getDescription());
         return v;
     }

@@ -226,6 +226,12 @@ export interface SeckillGoodVO {
   goodName: string;
   goodPic: string;
   originalPrice: number;
+  /** 秒杀价（管理端录入） */
+  seckillPrice?: number;
+  /** 限量库存 */
+  stockCount?: number;
+  /** DB 已售 */
+  stockSold?: number;
   description?: string;
   seckillId?: string;
   activityName?: string;

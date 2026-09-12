@@ -6,6 +6,7 @@ import com.fengluan.spi.seckill.vo.SeckillGoodVO;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 import org.apache.ibatis.annotations.Select;
+import org.apache.ibatis.annotations.Update;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -17,6 +18,9 @@ public interface SeckillGoodMapper extends BaseMapper<SeckillGoodEntity> {
     @Select("""
         SELECT sg.id, sg.good_id, sg.description, g.name AS goodName, g.pic AS goodPic,
                g.price AS originalPrice,
+               sg.seckill_price AS seckillPrice,
+               sg.stock_count AS stockCount,
+               sg.stock_sold AS stockSold,
                s.id AS seckillId, s.name AS activityName,
                s.start_time AS startTime, s.end_time AS endTime
         FROM seckill_good sg
@@ -34,6 +38,9 @@ public interface SeckillGoodMapper extends BaseMapper<SeckillGoodEntity> {
     @Select("""
         SELECT sg.id, sg.good_id, sg.description, g.name AS goodName, g.pic AS goodPic,
                g.price AS originalPrice,
+               sg.seckill_price AS seckillPrice,
+               sg.stock_count AS stockCount,
+               sg.stock_sold AS stockSold,
                s.id AS seckillId, s.name AS activityName,
                s.start_time AS startTime, s.end_time AS endTime
         FROM seckill_good sg
@@ -44,4 +51,12 @@ public interface SeckillGoodMapper extends BaseMapper<SeckillGoodEntity> {
         ORDER BY sg.id
         """)
     List<SeckillGoodVO> selectByActivity(@Param("seckillId") Long seckillId);
+
+    /** DB 账本 CAS 扣减：售罄/不足返回 0 行，数据库层根除超卖 */
+    @Update("UPDATE seckill_good SET stock_sold = stock_sold + 1 WHERE id = #{id} AND stock_sold < stock_count")
+    int deductStock(@Param("id") Long id);
+
+    /** DB 账本回补：条件防负数 */
+    @Update("UPDATE seckill_good SET stock_sold = stock_sold - 1 WHERE id = #{id} AND stock_sold > 0")
+    int restoreStock(@Param("id") Long id);
 }

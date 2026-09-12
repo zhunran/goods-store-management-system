@@ -1,9 +1,7 @@
 package com.fengluan.seckill.mq;
 
-import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.fengluan.common.mq.SeckillOrderMessage;
 import com.fengluan.seckill.config.SeckillMqConfig;
-import com.fengluan.seckill.entity.SeckillOrderEntity;
 import com.fengluan.seckill.repository.SeckillOrderMapper;
 import com.rabbitmq.client.Channel;
 import lombok.RequiredArgsConstructor;
@@ -17,38 +15,28 @@ import java.io.IOException;
 import java.time.LocalDateTime;
 
 /**
- * 秒杀订单超时关单消费者（消费延迟队列死信，消息体为 SeckillOrderMessage，携带回补所需的 memberId/seckillGoodId）：
- * 仅取消仍为 PENDING("10") 的订单，并恢复 Redis 库存 + 清防重键。
+ * 秒杀订单超时关单（延迟队列死信）：
+ * CAS 关单（仅 PENDING 可关，已支付让步）→ DB+Redis 双回补（补偿器内部幂等）。
+ * 异常 nack 重试：重试时 CAS=0 或补偿标记已存在，均幂等跳过，不会多补。
  */
 @Component
 @Slf4j
 @RequiredArgsConstructor
 public class SeckillOrderTimeoutConsumer {
 
-    private static final String PENDING = "10";
-    private static final String CANCELLED = "50";
-
     private final SeckillOrderMapper orderMapper;
-    private final SeckillRedisCompensator compensator;
+    private final SeckillCompensator compensator;
 
     @RabbitListener(queues = SeckillMqConfig.SECKILL_ORDER_CANCEL_QUEUE)
     public void handle(SeckillOrderMessage msg, Channel channel,
                        @Header(AmqpHeaders.DELIVERY_TAG) long tag) throws IOException {
         try {
-            SeckillOrderEntity order = orderMapper.selectOne(new LambdaQueryWrapper<SeckillOrderEntity>()
-                    .eq(SeckillOrderEntity::getOrderNo, msg.getOrderNo()));
-            if (order == null || !PENDING.equals(order.getStatus())) {
-                log.info("秒杀订单 {} 无需取消（不存在或非待付款）", msg.getOrderNo());
-                channel.basicAck(tag, false);
-                return;
-            }
-            order.setStatus(CANCELLED);
-            order.setUpdatedTime(LocalDateTime.now());
-            orderMapper.updateById(order);
-            // 秒杀不扣 DB 库存，Redis 是唯一扣减点：回补只操作 Redis
-            compensator.restore(msg.getSeckillGoodId(), msg.getMemberId());
+            // CAS 关单：已支付（status=20）时影响 0 行 → 由补偿器按订单实际状态让步
+            orderMapper.cancelPending(msg.getOrderNo(), LocalDateTime.now());
+            // 回补：内部校验订单确为 CANCELLED + orderNo 幂等标记，双条件防漏补/多补
+            compensator.compensateForTimeout(msg);
             channel.basicAck(tag, false);
-            log.info("秒杀订单超时自动取消：orderNo={}", msg.getOrderNo());
+            log.info("秒杀订单超时处理完成：orderNo={}", msg.getOrderNo());
         } catch (Exception e) {
             log.error("秒杀订单超时关单异常：orderNo={}", msg.getOrderNo(), e);
             channel.basicNack(tag, false, true);

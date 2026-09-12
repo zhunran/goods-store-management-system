@@ -13,6 +13,12 @@ public class SeckillGoodVO {
     private String goodName;
     private String goodPic;
     private BigDecimal originalPrice;
+    /** 秒杀价 */
+    private BigDecimal seckillPrice;
+    /** 限量库存 */
+    private Integer stockCount;
+    /** DB 已售 */
+    private Integer stockSold;
     private String description;
     // 活动窗口信息（由 service 填充）
     private Long seckillId;

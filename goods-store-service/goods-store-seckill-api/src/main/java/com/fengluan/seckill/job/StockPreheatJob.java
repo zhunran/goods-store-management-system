@@ -4,10 +4,8 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.fengluan.seckill.config.RedisConfig;
 import com.fengluan.seckill.entity.SeckillEntity;
 import com.fengluan.seckill.entity.SeckillGoodEntity;
-import com.fengluan.seckill.remote.SeckillProductClient;
 import com.fengluan.seckill.repository.SeckillGoodMapper;
 import com.fengluan.seckill.repository.SeckillMapper;
-import com.fengluan.spi.product.vo.GoodVO;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.StringRedisTemplate;
@@ -26,7 +24,6 @@ public class StockPreheatJob {
 
     private final SeckillMapper seckillMapper;
     private final SeckillGoodMapper seckillGoodMapper;
-    private final SeckillProductClient productClient;
     private final StringRedisTemplate redisTemplate;
 
     @Scheduled(cron = "0 * * * * ?")
@@ -50,10 +47,10 @@ public class StockPreheatJob {
             );
             for (SeckillGoodEntity sg : goods) {
                 String key = RedisConfig.STOCK_KEY_PREFIX + sg.getId();
-                GoodVO good = productClient.getById(sg.getGoodId().longValue());
-                String stock = (good == null || Boolean.TRUE.equals(good.getIsDel()) || good.getQty() == null)
-                        ? "0" : String.valueOf(good.getQty());
-                // setnx 一步写入真实库存（幂等，已预热的跳过；避免先占位 0 造成瞬间误判售罄）
+                // 预热值改为 DB 账本剩余量（限量-已售），与商品库存款彻底解耦
+                int left = Math.max(0, sg.getStockCount() - sg.getStockSold());
+                String stock = String.valueOf(left);
+                // setnx 一步写入（幂等，已预热的跳过；stock_count=0 的存量行写入 0 即售罄安全态）
                 Boolean absent = redisTemplate.opsForValue().setIfAbsent(key, stock);
                 if (Boolean.FALSE.equals(absent)) {
                     continue; // 已预热，跳过

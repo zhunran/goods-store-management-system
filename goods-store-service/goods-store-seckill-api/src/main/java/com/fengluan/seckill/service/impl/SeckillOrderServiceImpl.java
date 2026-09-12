@@ -11,12 +11,10 @@ import com.fengluan.seckill.entity.SeckillGoodEntity;
 import com.fengluan.seckill.entity.SeckillOrderEntity;
 import com.fengluan.seckill.mq.SeckillMessageProducer;
 import com.fengluan.seckill.remote.SeckillMemberClient;
-import com.fengluan.seckill.remote.SeckillProductClient;
 import com.fengluan.seckill.repository.SeckillGoodMapper;
 import com.fengluan.seckill.repository.SeckillOrderMapper;
 import com.fengluan.seckill.service.SeckillActivityService;
 import com.fengluan.seckill.service.SeckillOrderService;
-import com.fengluan.spi.product.vo.GoodVO;
 import com.fengluan.spi.seckill.dto.SeckillOrderResponse;
 import com.fengluan.spi.seckill.dto.SeckillOrderResultVO;
 import lombok.RequiredArgsConstructor;
@@ -38,7 +36,6 @@ public class SeckillOrderServiceImpl implements SeckillOrderService {
     private final SeckillOrderMapper seckillOrderMapper;
     private final SeckillActivityService seckillActivityService;
     private final SeckillMemberClient memberClient;
-    private final SeckillProductClient productClient;
     private final StringRedisTemplate redisTemplate;
     private final DefaultRedisScript<Long> seckillScript;
     private final SeckillMessageProducer seckillMessageProducer;
@@ -60,10 +57,12 @@ public class SeckillOrderServiceImpl implements SeckillOrderService {
         if (now.isAfter(seckill.getEndTime())) {
             throw new BusinessException(ErrorCode.SECKILL_ENDED);
         }
-        // 3. Lua 原子预减 + 防重（取 BUY_LUA 语义：-1=无库存键 / 0=售罄 / -2=已参与 / 1=成功）
+        // 3. Lua 原子预减 + 防重（-1=无库存键 / 0=售罄 / -2=已参与 / 1=成功）
         String stockKey = RedisConfig.STOCK_KEY_PREFIX + seckillGoodId;
         String orderKey = RedisConfig.ORDER_KEY_PREFIX + memberId + ":" + seckillGoodId;
-        Long result = redisTemplate.execute(seckillScript, List.of(stockKey, orderKey));
+        // 防重键 TTL 对齐库存键：活动结束 +1h（超时关单回补防重键后，活动期内仍不可重复抢）
+        long keyTtl = Duration.between(now, seckill.getEndTime()).getSeconds() + 3600;
+        Long result = redisTemplate.execute(seckillScript, List.of(stockKey, orderKey), String.valueOf(keyTtl));
         if (Long.valueOf(-1).equals(result)) {
             // 库存键不存在（活动开始后才添加商品/错过预热窗口）：即时回源预热后重试一次
             result = preheatAndRetry(sg, seckill, stockKey, orderKey);
@@ -74,14 +73,14 @@ public class SeckillOrderServiceImpl implements SeckillOrderService {
         if (result == null || result != 1L) {
             throw new BusinessException(ErrorCode.SECKILL_STOCK_EMPTY);
         }
-        // 4. 发 MQ 异步建单（此时已由 Lua 预扣库存、记防重标记）
+        // 4. 发 MQ 异步建单（此时已由 Lua 预扣库存、记防重标记）；价格取下单时刻快照
         String orderNo = snowflakeUtil.nectIdStr();
         SeckillOrderMessage msg = SeckillOrderMessage.builder()
                 .seckillId(sg.getSeckillId().longValue())
                 .seckillGoodId(seckillGoodId)
                 .goodId(sg.getGoodId().longValue())
                 .memberId(memberId)
-                .seckillPrice(java.math.BigDecimal.ZERO)
+                .seckillPrice(sg.getSeckillPrice())
                 .orderNo(orderNo)
                 .build();
         seckillMessageProducer.sendSeckillOrder(msg);
@@ -90,18 +89,16 @@ public class SeckillOrderServiceImpl implements SeckillOrderService {
     }
 
     /**
-     * 库存键缺失时的即时回源：查商品真实库存，setnx 原子写入（并发下仅一个请求写入成功），
+     * 库存键缺失时的即时回源：按 DB 账本（限量-已售）setnx 原子写入，
      * 过期时间对齐 StockPreheatJob（活动结束后 1 小时），然后重试一次 Lua 扣减。
      */
     private Long preheatAndRetry(SeckillGoodEntity sg, SeckillEntity seckill, String stockKey, String orderKey) {
-        GoodVO good = productClient.getById(sg.getGoodId().longValue());
-        String stock = (good == null || Boolean.TRUE.equals(good.getIsDel()) || good.getQty() == null)
-                ? "0" : String.valueOf(good.getQty());
-        redisTemplate.opsForValue().setIfAbsent(stockKey, stock);
+        int left = Math.max(0, sg.getStockCount() - sg.getStockSold());
+        redisTemplate.opsForValue().setIfAbsent(stockKey, String.valueOf(left));
         long expire = Duration.between(LocalDateTime.now(), seckill.getEndTime()).getSeconds() + 3600;
         redisTemplate.expire(stockKey, Duration.ofSeconds(expire));
-        log.info("秒杀库存即时回源 seckillGoodId={}, stock={}", sg.getId(), stock);
-        return redisTemplate.execute(seckillScript, List.of(stockKey, orderKey));
+        log.info("秒杀库存即时回源 seckillGoodId={}, stock={}", sg.getId(), left);
+        return redisTemplate.execute(seckillScript, List.of(stockKey, orderKey), String.valueOf(expire));
     }
 
     @Override

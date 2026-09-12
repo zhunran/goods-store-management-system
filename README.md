@@ -66,32 +66,34 @@ Spring Cloud Gateway（8888，统一鉴权 / 路由 / 限流）
 
 ## 三、模块清单与端口
 
-| 模块                    | 端口 | 说明                                        |
-| ----------------------- | ---- | ------------------------------------------- |
-| goods-store-gateway     | 8888 | 统一入口、JWT 鉴权、路由转发、Sentinel 限流 |
-| goods-store-web         | 8090 | BFF 聚合层，供前端 `/app/api/**` 调用       |
-| goods-store-auth-api    | 8083 | 认证 / RBAC 权限（双令牌 JWT）              |
-| goods-store-brand-api   | 8081 | 品牌 CRUD、上下架、图片上传                 |
-| goods-store-product-api | 8084 | 商品 / 分类树 / SKU / 规格组                |
-| goods-store-member-api  | 8085 | 会员、收货地址、信息脱敏                    |
-| goods-store-trade-api   | 8086 | 购物车、订单（MQ 异步 + Redisson 防重）     |
-| goods-store-seckill-api | 8087 | 秒杀（Redis 预扣库存 + Lua + MQ 异步建单）  |
-| goods-store-spi         | —    | Feign 契约层（6 个 \*-spi：接口 + DTO/VO）  |
-| goods-store-common      | —    | 统一返回 ApiResult、异常、MQ 消息模型、工具 |
+| 模块                    | 端口 | 说明                                                      |
+| ----------------------- | ---- | --------------------------------------------------------- |
+| goods-store-gateway     | 8888 | 统一入口、JWT 鉴权、路由转发、Sentinel 限流               |
+| goods-store-web         | 8090 | BFF 聚合层，供前端 `/app/api/**` 调用                     |
+| goods-store-auth-api    | 8083 | 认证 / RBAC 权限（双令牌 JWT）                            |
+| goods-store-brand-api   | 8081 | 品牌 CRUD、上下架、图片上传                               |
+| goods-store-product-api | 8084 | 商品 / 分类树 / SKU / 规格组                              |
+| goods-store-member-api  | 8085 | 会员、收货地址、信息脱敏                                  |
+| goods-store-trade-api   | 8086 | 购物车、订单（MQ 异步 + Redisson 防重）                   |
+| goods-store-seckill-api | 8087 | 秒杀（限量账本 + Redis Lua 预扣 + MQ 削峰 + DB CAS 兜底） |
+| goods-store-spi         | —    | Feign 契约层（6 个 \*-spi：接口 + DTO/VO）                |
+| goods-store-common      | —    | 统一返回 ApiResult、异常、MQ 消息模型、工具               |
 
 中间件：Nacos 8848 / MySQL 3306 / Redis / RabbitMQ / Sentinel Dashboard 8080 / SkyWalking OAP 11800（gRPC）、12800（HTTP）。
 
-## 四、当前进展（截至 2026-09-05）
+## 四、当前进展（截至 2026-09-11）
 
-| 项                                             | 状态                                     |
-| ---------------------------------------------- | ---------------------------------------- |
-| 后端 6 大业务服务 + 网关 + BFF 编译运行        | 全部通过                                 |
-| 中间件连接（Nacos / MySQL / Redis / RabbitMQ） | 正常                                     |
-| Nacos 服务注册与发现                           | 全部服务可发现                           |
-| 管理端前端（admin-web）                        | 已实现并打通数据请求                     |
-| 用户端前端（owner-web）                        | 已实现（含秒杀、购物车、下单全流程）     |
-| 用户端与秒杀联调缺陷（2026-09-05 排查）        | 已修复（见 doc/summary.md 第七节）       |
-| 可观测性（SkyWalking）                         | Agent + OAP + UI 就绪，OAP 用 MySQL 存储 |
+| 项                                             | 状态                                                                                   |
+| ---------------------------------------------- | -------------------------------------------------------------------------------------- |
+| 后端 6 大业务服务 + 网关 + BFF 编译运行        | 全部通过                                                                               |
+| 中间件连接（Nacos / MySQL / Redis / RabbitMQ） | 正常                                                                                   |
+| Nacos 服务注册与发现                           | 全部服务可发现                                                                         |
+| 管理端前端（admin-web）                        | 已实现并打通数据请求                                                                   |
+| 用户端前端（owner-web）                        | 已实现（含秒杀、购物车、下单全流程）                                                   |
+| 用户端与秒杀联调缺陷（2026-09-05 排查）        | 已修复（见 doc/summary.md 第七节）                                                     |
+| 可观测性（SkyWalking）                         | Agent + OAP + UI 就绪，OAP 用 MySQL 存储                                               |
+| 支付退款闭环（Stage 5）                        | 模拟支付/退款 + pay_log 流水已实装                                                     |
+| 秒杀链路讲实（Stage 7）                        | 限量账本（DB CAS 扣减兜底）+ 秒杀价计价 + 补偿幂等 + 超时关单 CAS 已实装，构建全部通过 |
 
 ## 五、快速开始
 
